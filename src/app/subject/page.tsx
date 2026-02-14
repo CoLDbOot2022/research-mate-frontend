@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BookOpenText, Loader2, Sparkles, Target } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,21 +27,23 @@ export default function SubjectPage() {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [units, setUnits] = useState<UnitLarge[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
   const [subject, setSubject] = useState("수학");
   const [large, setLarge] = useState("");
   const [medium, setMedium] = useState("");
   const [small, setSmall] = useState("");
   const [career, setCareer] = useState("");
-  const [difficulty, setDifficulty] = useState("60");
+  const [difficulty, setDifficulty] = useState("70");
 
   useEffect(() => {
     const load = async () => {
+      setFetchError("");
       const data = await api.get<string[]>("/curriculum/subjects");
       setSubjects(data);
       if (data.length > 0) setSubject(data[0]);
     };
-    load().catch(console.error);
+    load().catch(() => setFetchError("백엔드 연결에 실패했습니다. 서버 실행 상태와 API URL을 확인해주세요."));
   }, []);
 
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function SubjectPage() {
       setMedium("");
       setSmall("");
     };
-    load().catch(console.error);
+    load().catch(() => setFetchError("단원 목록을 불러오지 못했습니다."));
   }, [subject]);
 
   const mediumOptions = useMemo(() => {
@@ -86,17 +89,24 @@ export default function SubjectPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 min-h-screen">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">심화 탐구 설정</h1>
-        <p className="text-slate-600 mb-8">
-          과목, 단원(대주제/중주제/소주제), 진로 또는 관심사를 입력하면 주제를 1개만 추천합니다.
-        </p>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fef9c3_0%,#eff6ff_40%,#f8fafc_75%)] py-12 px-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="rounded-3xl border bg-white/80 backdrop-blur p-8 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold mb-4">
+            <Sparkles className="w-3 h-3" /> Research-Mate Workflow
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">심화 탐구 입력</h1>
+          <p className="text-slate-600">과목과 단원을 고르면 AI가 주제 1개를 추천하고, 바로 고퀄리티 보고서 생성으로 이어집니다.</p>
+        </div>
+
+        {fetchError && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">{fetchError}</div>
+        )}
 
         <form onSubmit={onSubmit} className="space-y-6">
-          <Card>
+          <Card className="rounded-3xl border-slate-200/70 shadow-sm">
             <CardHeader>
-              <CardTitle>교과서 단원 선택</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-xl"><BookOpenText className="w-5 h-5" /> 교과서 단원 선택</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-3 space-y-2">
@@ -107,6 +117,7 @@ export default function SubjectPage() {
                       key={s}
                       type="button"
                       variant={subject === s ? "default" : "outline"}
+                      className={subject === s ? "bg-slate-900 hover:bg-slate-950" : "bg-white"}
                       onClick={() => setSubject(s)}
                     >
                       {s}
@@ -125,14 +136,10 @@ export default function SubjectPage() {
                     setSmall("");
                   }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="대주제 선택" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="대주제 선택" /></SelectTrigger>
                   <SelectContent>
                     {units.map((u) => (
-                      <SelectItem key={u.unit_large} value={u.unit_large}>
-                        {u.unit_large}
-                      </SelectItem>
+                      <SelectItem key={u.unit_large} value={u.unit_large}>{u.unit_large}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -148,14 +155,10 @@ export default function SubjectPage() {
                   }}
                   disabled={!large}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="중주제 선택" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="중주제 선택" /></SelectTrigger>
                   <SelectContent>
                     {mediumOptions.map((m) => (
-                      <SelectItem key={m.unit_medium} value={m.unit_medium}>
-                        {m.unit_medium}
-                      </SelectItem>
+                      <SelectItem key={m.unit_medium} value={m.unit_medium}>{m.unit_medium}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -164,14 +167,10 @@ export default function SubjectPage() {
               <div className="space-y-2">
                 <Label>소주제 (선택)</Label>
                 <Select value={small} onValueChange={setSmall} disabled={!medium}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="소주제 선택" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="소주제 선택" /></SelectTrigger>
                   <SelectContent>
                     {smallOptions.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -179,9 +178,9 @@ export default function SubjectPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-3xl border-slate-200/70 shadow-sm">
             <CardHeader>
-              <CardTitle>진로/관심 및 난이도</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-xl"><Target className="w-5 h-5" /> 진로/관심 및 난이도</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -189,7 +188,8 @@ export default function SubjectPage() {
                 <Input
                   value={career}
                   onChange={(e) => setCareer(e.target.value)}
-                  placeholder="예: 의공학, 데이터사이언스, 수학교육"
+                  placeholder="예: 금융공학, 의공학, 산업수학"
+                  className="bg-slate-50"
                 />
               </div>
               <div className="space-y-2">
@@ -200,13 +200,14 @@ export default function SubjectPage() {
                   max={100}
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
+                  className="bg-slate-50"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-semibold">
-            {loading ? "추천 준비 중..." : "주제 1개 추천받기"}
+          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-semibold rounded-xl bg-slate-900 hover:bg-slate-950">
+            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />추천 준비 중...</> : "주제 1개 추천받기"}
           </Button>
         </form>
       </div>
