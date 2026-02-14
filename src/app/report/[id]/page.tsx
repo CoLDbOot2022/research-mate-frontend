@@ -28,6 +28,9 @@ type ReportResponse = {
   content: ReportContent | null;
   created_at: string;
   is_bookmarked: boolean;
+  progress?: number | null;
+  phase?: string | null;
+  status_message?: string | null;
 };
 
 type ChatMessage = {
@@ -144,6 +147,14 @@ export default function ReportDetailPage() {
   }, [report?.status, report?.content]);
 
   const progressMeta = useMemo(() => {
+    const direct = {
+      progress: typeof report?.progress === "number" ? report.progress : null,
+      phase: typeof report?.phase === "string" ? report.phase : "",
+      message: typeof report?.status_message === "string" ? report.status_message : "",
+    };
+    if (direct.progress !== null || direct.phase || direct.message) {
+      return direct;
+    }
     const meta = report?.content?.__meta;
     if (!meta || typeof meta !== "object") return null;
     const obj = meta as Record<string, unknown>;
@@ -152,7 +163,7 @@ export default function ReportDetailPage() {
       phase: typeof obj.phase === "string" ? obj.phase : "",
       message: typeof obj.message === "string" ? obj.message : "",
     };
-  }, [report?.content]);
+  }, [report?.content, report?.progress, report?.phase, report?.status_message]);
 
   const onSave = async () => {
     if (!report) return;
@@ -246,8 +257,13 @@ export default function ReportDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight">보고서 상세</h1>
-            <p className="text-sm text-slate-600 mt-1">상태: {report.status}</p>
-          </div>
+              <p className="text-sm text-slate-600 mt-1">상태: {report.status}</p>
+              {isGenerating && progressMeta?.phase && (
+                <p className="text-xs text-indigo-700 mt-1">
+                  실시간 단계: {progressMeta.phase} ({progressMeta.progress ?? 0}%)
+                </p>
+              )}
+            </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={() => router.push("/my-reports")}>목록</Button>
             <Button variant="outline" onClick={onToggleBookmark}>

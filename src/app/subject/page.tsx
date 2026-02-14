@@ -21,6 +21,8 @@ type UnitLarge = {
   children: UnitMedium[];
 };
 
+const NONE_VALUE = "__none__";
+
 export default function SubjectPage() {
   const router = useRouter();
 
@@ -29,10 +31,10 @@ export default function SubjectPage() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState("");
 
-  const [subject, setSubject] = useState("수학");
-  const [large, setLarge] = useState("");
-  const [medium, setMedium] = useState("");
-  const [small, setSmall] = useState("");
+  const [subject, setSubject] = useState("");
+  const [large, setLarge] = useState(NONE_VALUE);
+  const [medium, setMedium] = useState(NONE_VALUE);
+  const [small, setSmall] = useState(NONE_VALUE);
   const [career, setCareer] = useState("");
   const [difficulty, setDifficulty] = useState("70");
 
@@ -51,36 +53,33 @@ export default function SubjectPage() {
     const load = async () => {
       const data = await api.get<UnitLarge[]>("/curriculum/units", { params: { subject } });
       setUnits(data);
-      setLarge("");
-      setMedium("");
-      setSmall("");
+      setLarge(NONE_VALUE);
+      setMedium(NONE_VALUE);
+      setSmall(NONE_VALUE);
     };
     load().catch(() => setFetchError("단원 목록을 불러오지 못했습니다."));
   }, [subject]);
 
   const mediumOptions = useMemo(() => {
+    if (large === NONE_VALUE) return [];
     const found = units.find((u) => u.unit_large === large);
     return found?.children ?? [];
   }, [units, large]);
 
   const smallOptions = useMemo(() => {
+    if (medium === NONE_VALUE) return [];
     const found = mediumOptions.find((m) => m.unit_medium === medium);
     return found?.children ?? [];
   }, [mediumOptions, medium]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!large) {
-      alert("대주제(대단원)는 반드시 선택해야 합니다.");
-      return;
-    }
-
     setLoading(true);
     const query = new URLSearchParams({
       subject,
-      unit_large: large,
-      unit_medium: medium,
-      unit_small: small,
+      unit_large: large === NONE_VALUE ? "" : large,
+      unit_medium: medium === NONE_VALUE ? "" : medium,
+      unit_small: small === NONE_VALUE ? "" : small,
       career,
       difficulty,
       mode: "new",
@@ -132,12 +131,13 @@ export default function SubjectPage() {
                   value={large}
                   onValueChange={(v) => {
                     setLarge(v);
-                    setMedium("");
-                    setSmall("");
+                    setMedium(NONE_VALUE);
+                    setSmall(NONE_VALUE);
                   }}
                 >
                   <SelectTrigger><SelectValue placeholder="대주제 선택" /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
                     {units.map((u) => (
                       <SelectItem key={u.unit_large} value={u.unit_large}>{u.unit_large}</SelectItem>
                     ))}
@@ -151,12 +151,12 @@ export default function SubjectPage() {
                   value={medium}
                   onValueChange={(v) => {
                     setMedium(v);
-                    setSmall("");
+                    setSmall(NONE_VALUE);
                   }}
-                  disabled={!large}
                 >
                   <SelectTrigger><SelectValue placeholder="중주제 선택" /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
                     {mediumOptions.map((m) => (
                       <SelectItem key={m.unit_medium} value={m.unit_medium}>{m.unit_medium}</SelectItem>
                     ))}
@@ -166,9 +166,10 @@ export default function SubjectPage() {
 
               <div className="space-y-2">
                 <Label>소주제 (선택)</Label>
-                <Select value={small} onValueChange={setSmall} disabled={!medium}>
+                <Select value={small} onValueChange={setSmall}>
                   <SelectTrigger><SelectValue placeholder="소주제 선택" /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
                     {smallOptions.map((s) => (
                       <SelectItem key={s} value={s}>{s}</SelectItem>
                     ))}
