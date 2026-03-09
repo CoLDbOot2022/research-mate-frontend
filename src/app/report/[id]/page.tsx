@@ -38,6 +38,11 @@ type ChatMessage = {
   text: string;
 };
 
+type DynamicSection = {
+  heading: string;
+  content: string;
+};
+
 const sectionDefs = [
   { key: "abstract", label: "초록" },
   { key: "introduction", label: "1. 탐구 동기 및 목적" },
@@ -55,6 +60,7 @@ export default function ReportDetailPage() {
 
   const [report, setReport] = useState<ReportResponse | null>(null);
   const [content, setContent] = useState<Record<string, string>>({});
+  const [sections, setSections] = useState<DynamicSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -103,6 +109,19 @@ export default function ReportDetailPage() {
           if (typeof value === "string") map[section.key] = value;
         }
         setContent((prev) => (Object.keys(prev).length > 0 && isGenerating ? prev : map));
+        const rawSections = res.content?.sections;
+        if (Array.isArray(rawSections)) {
+          const normalized = rawSections
+            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+            .map((item) => ({
+              heading: typeof item.heading === "string" ? item.heading : "",
+              content: typeof item.content === "string" ? item.content : "",
+            }))
+            .filter((item) => item.heading && item.content);
+          setSections((prev) => (prev.length > 0 && isGenerating ? prev : normalized));
+        } else if (!isGenerating) {
+          setSections([]);
+        }
 
         if (res.status === "generating") {
           timer = setTimeout(fetchReport, 2500);
@@ -128,6 +147,8 @@ export default function ReportDetailPage() {
     const refs = report?.content?.references;
     return Array.isArray(refs) ? refs.map(String) : [];
   }, [report?.content]);
+
+  const hasDynamicSections = sections.length > 0;
 
   const quality = useMemo(() => {
     const q = report?.content?.quality;
@@ -170,8 +191,12 @@ export default function ReportDetailPage() {
     setSaving(true);
     try {
       const updatedContent: ReportContent = { ...(report.content || {}) };
-      for (const section of sectionDefs) {
-        if (content[section.key]) updatedContent[section.key] = content[section.key];
+      if (sections.length > 0) {
+        updatedContent.sections = sections;
+      } else {
+        for (const section of sectionDefs) {
+          if (content[section.key]) updatedContent[section.key] = content[section.key];
+        }
       }
       const updated = await api.patch<ReportResponse>(`/reports/${report.report_id}`, { content: updatedContent });
       setReport(updated);
@@ -353,22 +378,47 @@ export default function ReportDetailPage() {
                       </div>
                     )}
                     <div className="space-y-8 text-sm md:text-[15px] leading-relaxed text-justify">
-                      {sectionDefs.map((section, idx) => (
-                        <section key={section.key}>
-                          <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
-                            {section.label}
-                          </h3>
-                          {editMode ? (
-                            <textarea
-                              className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
-                              value={content[section.key] ?? ""}
-                              onChange={(e) => setContent((prev) => ({ ...prev, [section.key]: e.target.value }))}
-                            />
-                          ) : (
-                            <p className="text-slate-700 whitespace-pre-wrap">{content[section.key] || "내용이 없습니다."}</p>
-                          )}
-                        </section>
-                      ))}
+                      {hasDynamicSections ? (
+                        sections.map((section, idx) => (
+                          <section key={`${section.heading}-${idx}`}>
+                            <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                              {section.heading}
+                            </h3>
+                            {editMode ? (
+                              <textarea
+                                className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
+                                value={section.content}
+                                onChange={(e) =>
+                                  setSections((prev) =>
+                                    prev.map((item, itemIdx) =>
+                                      itemIdx === idx ? { ...item, content: e.target.value } : item
+                                    )
+                                  )
+                                }
+                              />
+                            ) : (
+                              <p className="text-slate-700 whitespace-pre-wrap">{section.content || "내용이 없습니다."}</p>
+                            )}
+                          </section>
+                        ))
+                      ) : (
+                        sectionDefs.map((section, idx) => (
+                          <section key={section.key}>
+                            <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                              {section.label}
+                            </h3>
+                            {editMode ? (
+                              <textarea
+                                className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
+                                value={content[section.key] ?? ""}
+                                onChange={(e) => setContent((prev) => ({ ...prev, [section.key]: e.target.value }))}
+                              />
+                            ) : (
+                              <p className="text-slate-700 whitespace-pre-wrap">{content[section.key] || "내용이 없습니다."}</p>
+                            )}
+                          </section>
+                        ))
+                      )}
                     </div>
                     </>
                   )}
