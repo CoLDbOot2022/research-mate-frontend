@@ -23,6 +23,17 @@ type UnitLarge = {
 };
 
 const NONE_VALUE = "__none__";
+const REPORT_TYPES = [
+  { value: "general", label: "일반 리포트", description: "기본 보고서 생성", packageCode: "basic" },
+  { value: "premium", label: "프리미엄 리포트", description: "검수 포함 보고서 생성", packageCode: "premium-review" },
+] as const;
+
+type PaymentSummary = {
+  packages: Array<{
+    code: string;
+    credit_balance: number;
+  }>;
+};
 
 export default function SubjectPage() {
   const router = useRouter();
@@ -36,8 +47,10 @@ export default function SubjectPage() {
   const [large, setLarge] = useState(NONE_VALUE);
   const [medium, setMedium] = useState(NONE_VALUE);
   const [small, setSmall] = useState(NONE_VALUE);
+  const [reportType, setReportType] = useState<(typeof REPORT_TYPES)[number]["value"]>("general");
   const [career, setCareer] = useState("");
   const [difficulty, setDifficulty] = useState("70");
+  const [packageCredits, setPackageCredits] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -68,6 +81,22 @@ export default function SubjectPage() {
     load().catch(() => setFetchError("단원 목록을 불러오지 못했습니다."));
   }, [subject]);
 
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) {
+      return;
+    }
+
+    const load = async () => {
+      const summary = await api.get<PaymentSummary>("/payments/summary", { cache: "no-store" });
+      setPackageCredits(
+        Object.fromEntries(summary.packages.map((pkg) => [pkg.code, pkg.credit_balance]))
+      );
+    };
+
+    load().catch(() => setPackageCredits({}));
+  }, []);
+
   const mediumOptions = useMemo(() => {
     if (large === NONE_VALUE) return [];
     const found = units.find((u) => u.unit_large === large);
@@ -88,6 +117,7 @@ export default function SubjectPage() {
       unit_large: large === NONE_VALUE ? "" : large,
       unit_medium: medium === NONE_VALUE ? "" : medium,
       unit_small: small === NONE_VALUE ? "" : small,
+      report_type: reportType,
       career,
       difficulty,
       mode: "new",
@@ -185,6 +215,38 @@ export default function SubjectPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="md:col-span-3 space-y-2">
+                <Label>리포트 종류</Label>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {REPORT_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setReportType(type.value)}
+                      className={`rounded-2xl border px-4 py-3 text-left transition ${
+                        reportType === type.value
+                          ? "border-2 border-slate-900 bg-white text-slate-900 shadow-sm"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold">{type.label}</p>
+                          <p className={`mt-1 text-xs ${reportType === type.value ? "text-slate-600" : "text-slate-500"}`}>{type.description}</p>
+                        </div>
+                        {type.packageCode in packageCredits ? (
+                          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            reportType === type.value ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-600"
+                          }`}>
+                            {packageCredits[type.packageCode] ?? 0}회 남음
+                          </span>
+                        ) : null}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

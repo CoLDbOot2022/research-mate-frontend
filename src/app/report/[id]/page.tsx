@@ -438,7 +438,7 @@ export default function ReportDetailPage() {
                         {hasDynamicSections ? (
                           sections.map((section, idx) => (
                             <section key={`${section.heading}-${idx}`} className="space-y-3">
-                              <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                              <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
                                 {section.heading}
                               </h3>
                               {editMode ? (

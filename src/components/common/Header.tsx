@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { BookOpen, LogOut, UserRound } from "lucide-react";
+import { BookOpen, ChevronDown, CircleUserRound, CreditCard, LogOut, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { clearAccessToken, getAccessToken } from "@/lib/auth";
@@ -19,8 +19,10 @@ type MeResponse = {
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = getAccessToken();
@@ -51,11 +53,36 @@ export function Header() {
     });
   }, [pathname]);
 
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
   const logout = () => {
     clearAccessToken();
     setMe(null);
+    setIsMenuOpen(false);
     router.push("/");
   };
+
+  const displayName = me?.name || me?.email || "사용자";
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 no-print">
@@ -86,14 +113,60 @@ export function Header() {
 
         <div className="flex items-center space-x-2">
           {me ? (
-            <>
-              <div className="hidden sm:flex items-center gap-1 text-sm text-slate-700 px-2">
-                <UserRound className="w-4 h-4" /> {me.name || me.email}
-              </div>
-              <Button variant="outline" size="sm" onClick={logout}>
-                <LogOut className="w-4 h-4 mr-1" /> 로그아웃
+            <div className="relative" ref={menuRef}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 rounded-full border-slate-200 px-3"
+                onClick={() => setIsMenuOpen((prev) => !prev)}
+              >
+                <UserRound className="w-4 h-4" />
+                <span className="hidden max-w-28 truncate sm:inline">{displayName}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isMenuOpen ? "rotate-180" : ""}`} />
               </Button>
-            </>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 top-12 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                  <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                    <p className="text-sm font-semibold text-slate-900">{displayName}님</p>
+                    <p className="mt-1 text-xs text-slate-500">{me.email}</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push("/my-page");
+                    }}
+                  >
+                    <CircleUserRound className="w-4 h-4" />
+                    마이페이지
+                  </button>
+
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push("/credits");
+                    }}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    크레딧 충전
+                  </button>
+
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+                    onClick={logout}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>로그인</Button>

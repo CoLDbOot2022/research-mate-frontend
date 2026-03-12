@@ -20,9 +20,17 @@ type Topic = {
   related_subjects: string[];
 };
 
+type GenerateReportResponse = {
+  report_id: string;
+  charged_package_code?: string;
+  remaining_credit_balance?: number;
+};
+
 function TopicConfirmContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const reportType = searchParams.get("report_type") ?? "general";
+  const reportTypeLabel = reportType === "premium" ? "프리미엄 리포트" : "일반 리포트";
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +106,10 @@ function TopicConfirmContent() {
     }
     setGeneratingReport(true);
     try {
-      const res = await api.post<{ report_id: string }>("/reports/generate", { topic_id: topic.topic_id });
+      const res = await api.post<GenerateReportResponse>("/reports/generate", {
+        topic_id: topic.topic_id,
+        report_type: reportType,
+      });
       // Redirect back to report detail page to watch progress
       router.push(`/report/${res.report_id}`);
     } catch (e) {
@@ -148,7 +159,8 @@ function TopicConfirmContent() {
         <div className="rounded-3xl border bg-white/80 backdrop-blur px-8 py-7 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 mb-2">추천 완료</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight">단 하나의 추천 주제</h1>
-          <p className="text-slate-600 mt-2">나의 생기부에 가장 잘 어울리는 단 하나의 주제를 제안합니다.</p>
+          <p className="text-slate-600 mt-2">마음에 들면 바로 보고서를 생성하고, 아니면 재추천을 요청할 수 있습니다.</p>
+          <p className="text-sm font-medium text-slate-500 mt-3">선택한 리포트 종류: {reportTypeLabel}</p>
         </div>
 
         <Card className="rounded-3xl border-slate-200/70 shadow-sm overflow-hidden">
@@ -173,7 +185,7 @@ function TopicConfirmContent() {
             <div className="flex justify-center pt-1">
               <Button onClick={onConfirm} disabled={generatingReport} className="h-12 bg-slate-900 hover:bg-slate-950 rounded-xl px-12">
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                {generatingReport ? "보고서 생성 중..." : "이 주제로 보고서 생성"}
+                {generatingReport ? "보고서 생성 중..." : `${reportTypeLabel} 생성`}
               </Button>
             </div>
           </CardContent>
