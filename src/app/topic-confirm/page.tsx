@@ -109,7 +109,7 @@ function TopicConfirmContent() {
   };
 
   if (loading) {
-    const progress = Math.min(92, (elapsedMs / 2600) * 100);
+    const progress = 100 * (1 - Math.pow(0.1, elapsedMs / 10000));
     return (
       <div className="min-h-screen bg-[linear-gradient(135deg,#f8fafc_0%,#fff7ed_45%,#eef2ff_100%)] py-12 px-4">
         <div className="max-w-3xl mx-auto">
@@ -135,10 +135,6 @@ function TopicConfirmContent() {
               "중복도 및 실현가능성 필터링",
               "최종 후보 1개 확정",
             ]}
-            quiz={{
-              question: "도함수의 의미를 가장 짧게 말하면?",
-              answerHint: "함수의 순간 변화율",
-            }}
             tip="주제는 하나만 보여주고, 필요하면 재추천으로 다음 후보를 확인할 수 있어요."
           />
         </div>

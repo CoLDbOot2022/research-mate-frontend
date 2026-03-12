@@ -92,7 +92,7 @@ export default function SubjectPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="rounded-3xl border bg-white/80 backdrop-blur p-8 shadow-sm">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold mb-4">
-            <Sparkles className="w-3 h-3" /> Research-Mate Workflow
+            <Sparkles className="w-3 h-3" /> 세특연구소 Workflow
           </div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">심화 탐구 입력</h1>
           <p className="text-slate-600">과목과 단원을 고르면 AI가 주제 1개를 추천하고, 바로 고퀄리티 보고서 생성으로 이어집니다.</p>
@@ -193,16 +193,29 @@ export default function SubjectPage() {
                   className="bg-slate-50"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>난이도 (1~100)</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
-                  className="bg-slate-50"
-                />
+              <div className="space-y-3">
+                <Label>난이도 선택</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "기초", value: "30", desc: "기본 개념 위주" },
+                    { label: "응용", value: "60", desc: "심화 개념 연결" },
+                    { label: "심화", value: "90", desc: "학문적 탐구 중심" },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant={difficulty === item.value ? "default" : "outline"}
+                      className={`h-auto py-3 flex flex-col gap-1 rounded-2xl border-slate-200 ${difficulty === item.value ? "bg-slate-900 text-white hover:bg-slate-800" : "bg-white hover:bg-slate-50"
+                        }`}
+                      onClick={() => setDifficulty(item.value)}
+                    >
+                      <span className="font-bold">{item.label}</span>
+                      <span className={`text-[10px] ${difficulty === item.value ? "text-slate-300" : "text-slate-500"}`}>
+                        {item.desc}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

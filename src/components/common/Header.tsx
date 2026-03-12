@@ -58,13 +58,13 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-100">
+    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 no-print">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
-          <div className="p-1.5 bg-blue-600 text-white rounded-lg">
-            <BookOpen className="w-5 h-5" />
+          <div className="flex items-center justify-center">
+            <img src="/logo.png" alt="세특연구소 로고" className="w-8 h-8 object-contain" />
           </div>
-          <span className="font-bold text-xl text-slate-900 tracking-tight">Research-Mate</span>
+          <span className="font-bold text-xl text-slate-900 tracking-tight">세특연구소</span>
         </Link>
 
         <nav className="hidden md:flex items-center space-x-8">

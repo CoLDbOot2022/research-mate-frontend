@@ -140,7 +140,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-lg text-slate-600">
               주제 선정 동기부터 심화 이론, 실험 데이터 분석, 결론 도출까지.<br />
-              TopicGen AI가 논리적이고 체계적인 보고서 초안을 완성해 드립니다.
+              세특연구소 AI가 논리적이고 체계적인 보고서 초안을 완성해 드립니다.
             </p>
           </div>
 
@@ -155,7 +155,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-4">학생들의 실제 후기</h2>
-            <p className="text-gray-500">TopicGen과 함께 성공적인 입시 결과를 만들어가는 학생들의 이야기입니다.</p>
+            <p className="text-gray-500">세특연구소와 함께 성공적인 입시 결과를 만들어가는 학생들의 이야기입니다.</p>
           </div>
 
           <div className="w-full">
@@ -168,7 +168,7 @@ export default function LandingPage() {
       <section className="py-20 bg-blue-600 text-white text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-6">지금 바로 나만의 주제를 찾아보세요</h2>
-          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">입시 준비, 더 이상 혼자 고민하지 마세요. TopicGen이 함께합니다.</p>
+          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">입시 준비, 더 이상 혼자 고민하지 마세요. 세특연구소가 함께합니다.</p>
           <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold" onClick={() => router.push('/subject')}>
             무료로 주제 추천받기
           </Button>
@@ -179,7 +179,7 @@ export default function LandingPage() {
       <footer className="bg-white py-12 border-t text-sm text-gray-500">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <span className="font-bold text-lg text-slate-800">TopicGen</span>
+            <span className="font-bold text-lg text-slate-800">세특연구소</span>
           </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-black">이용약관</a>
@@ -187,7 +187,7 @@ export default function LandingPage() {
             <a href="#" className="hover:text-black">고객센터</a>
           </div>
           <div className="mt-4 md:mt-0">
-            © 2024 TopicGen. All rights reserved.
+            © 2024 세특연구소. All rights reserved.
           </div>
         </div>
       </footer>

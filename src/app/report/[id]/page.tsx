@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark,
   BookmarkCheck,
   Download,
+  Lightbulb,
   Loader2,
   MessageSquareText,
   Save,
   ShieldCheck,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -240,8 +245,12 @@ export default function ReportDetailPage() {
     }
   };
 
+  const handleDownloadPdf = () => {
+    window.print();
+  };
+
   if (loading) {
-    const progress = Math.min(90, (loadingElapsedMs / 2500) * 100);
+    const progress = Math.min(98, (loadingElapsedMs / 100000) * 100)
     return (
       <div className="min-h-screen bg-[linear-gradient(180deg,#f1f5f9_0%,#ffffff_30%,#eef2ff_100%)] py-8 px-4">
         <div className="max-w-3xl mx-auto">
@@ -277,39 +286,90 @@ export default function ReportDetailPage() {
   if (!report) return <div className="p-10 text-center">보고서를 찾을 수 없습니다.</div>;
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f1f5f9_0%,#ffffff_30%,#eef2ff_100%)] py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f1f5f9_0%,#ffffff_30%,#eef2ff_100%)] py-8 px-4 print:p-0 print:bg-white print:overflow-visible print:block">
+      <div className="max-w-4xl mx-auto print:max-w-none print:m-0 print:overflow-visible print:block">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-6 no-print">
           <div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight">보고서 상세</h1>
-              <p className="text-sm text-slate-600 mt-1">상태: {report.status}</p>
-              {isGenerating && progressMeta?.phase && (
-                <p className="text-xs text-indigo-700 mt-1">
-                  실시간 단계: {progressMeta.phase} ({progressMeta.progress ?? 0}%)
-                </p>
-              )}
-            </div>
+            <p className="text-sm text-slate-600 mt-1">상태: {report.status}</p>
+            {isGenerating && progressMeta?.phase && (
+              <p className="text-xs text-indigo-700 mt-1">
+                실시간 단계: {progressMeta.phase} ({progressMeta.progress ?? 0}%)
+              </p>
+            )}
+          </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={() => router.push("/my-reports")}>목록</Button>
             <Button variant="outline" onClick={onToggleBookmark}>
               {report.is_bookmarked ? <BookmarkCheck className="w-4 h-4 mr-1" /> : <Bookmark className="w-4 h-4 mr-1" />}
               {report.is_bookmarked ? "북마크 해제" : "북마크"}
             </Button>
-            <Button variant="outline" onClick={() => setEditMode((prev) => !prev)} disabled={isGenerating}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (editMode) {
+                  // Check for unsaved changes before exiting
+                  const currentContent: Record<string, string> = { ...content };
+                  const originalContent: Record<string, string> = {};
+                  for (const section of sectionDefs) {
+                    const val = report.content?.[section.key];
+                    if (typeof val === "string") originalContent[section.key] = val;
+                  }
+
+                  const hasContentChanges = JSON.stringify(currentContent) !== JSON.stringify(originalContent);
+
+                  const hasSectionChanges = JSON.stringify(sections) !== JSON.stringify(
+                    Array.isArray(report.content?.sections)
+                      ? report.content.sections.map(s => ({
+                        heading: String(s.heading || ""),
+                        content: String(s.content || "")
+                      }))
+                      : []
+                  );
+
+                  if (hasContentChanges || hasSectionChanges) {
+                    if (!confirm("저장하지 않은 수정사항이 있습니다. 무시하고 나가시겠습니까?")) {
+                      return;
+                    }
+                    // Reset to original data if user confirms discarding
+                    setContent(originalContent);
+                    const rawSections = report.content?.sections;
+                    if (Array.isArray(rawSections)) {
+                      setSections(rawSections.map(s => ({
+                        heading: String(s.heading || ""),
+                        content: String(s.content || "")
+                      })));
+                    } else {
+                      setSections([]);
+                    }
+                  }
+                }
+                setEditMode((prev) => !prev);
+              }}
+              disabled={isGenerating}
+            >
               {editMode ? "보기 모드" : "편집 모드"}
             </Button>
-            <Button onClick={onSave} disabled={saving || isGenerating || !editMode} className="bg-slate-900 hover:bg-slate-950">
-              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}저장
-            </Button>
+            {editMode && (
+              <Button onClick={onSave} disabled={saving || isGenerating} className="bg-slate-900 hover:bg-slate-950">
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}저장
+              </Button>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-          <div className="relative w-full" style={{ perspective: "1000px" }}>
-            <div className="absolute inset-0 bg-blue-100/60 rounded-3xl blur-3xl -z-10 scale-105" />
+        <div className="w-full no-print flex justify-end mb-4">
+          <Button variant="outline" size="sm" onClick={() => router.push("/")} className="text-slate-600">
+            목록으로
+          </Button>
+        </div>
 
-            <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
-              <div className="h-12 bg-slate-50 border-b border-slate-100 flex items-center justify-between px-4">
+        <div className="w-full print:block print:overflow-visible">
+          <div className="relative w-full print:static print:block print:overflow-visible" style={{ perspective: "1000px" }}>
+            <div className="absolute inset-0 bg-blue-100/60 rounded-3xl blur-3xl -z-10 scale-105 no-print" />
+
+            <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden print:shadow-none print:border-none print:rounded-none print:overflow-visible print:block">
+              <div className="h-12 bg-slate-50 border-b border-slate-100 flex items-center justify-between px-4 no-print">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
@@ -320,11 +380,19 @@ export default function ReportDetailPage() {
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                     <ShieldCheck className="w-3 h-3" /> Verified
                   </span>
-                  <Download className="w-4 h-4 text-slate-400" />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-slate-400 hover:text-blue-600 transition-colors"
+                    onClick={handleDownloadPdf}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
+              <div className="h-1 bg-slate-100 no-print" />
 
-              <div className="p-8 md:p-12 min-h-[760px] font-serif text-slate-800 bg-white relative overflow-hidden">
+              <div id="report-paper" className="print-area p-8 md:p-12 min-h-[760px] font-serif text-slate-800 bg-white relative overflow-hidden">
                 <div className="max-w-3xl mx-auto space-y-8">
                   <div className="text-center border-b pb-6 mb-8">
                     <h2 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight">{report.title}</h2>
@@ -340,7 +408,14 @@ export default function ReportDetailPage() {
                     <PhaseProgress
                       title="LangGraph 보고서 생성 중"
                       subtitle="교과서 RAG, 계획, 생성, 비평, 재작성 단계를 순차 실행합니다."
-                      progress={progressMeta?.progress ?? Math.min(96, (generatingElapsedMs / 42000) * 100)}
+                      progress={
+                        progressMeta?.progress ?? (() => {
+                          const elapsed = generatingElapsedMs;
+                          if (elapsed < 240000) return Math.min(80, elapsed / 6000);
+                          return Math.min(99, 80 + (elapsed - 240000) / 5000);
+                        })()
+                      }
+                      realTimeMessage={progressMeta?.message || ""}
                       phases={[
                         { label: "RAG 수집", description: "교과서 문맥과 관련 근거를 수집합니다.", threshold: 18 },
                         { label: "탐구 계획", description: "연구 질문과 분석 절차를 설계합니다.", threshold: 38 },
@@ -363,122 +438,78 @@ export default function ReportDetailPage() {
                         "필요 시 재작성 루프 적용",
                         "최종 품질 검증 및 저장 준비",
                       ]}
-                      quiz={{
-                        question: "RAG의 핵심 장점은?",
-                        answerHint: "모델이 외부 근거를 참조해 사실성을 높임",
-                      }}
                       tip="생성 중에도 페이지를 닫지 않아도 됩니다. 기록 페이지에서 다시 확인할 수 있어요."
                     />
                   ) : (
                     <>
-                    {report.status === "failed" && (
-                      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-6">
-                        <p className="font-semibold mb-1">생성 실패</p>
-                        <p>{failureInfo}</p>
-                      </div>
-                    )}
-                    <div className="space-y-8 text-sm md:text-[15px] leading-relaxed text-justify">
-                      {hasDynamicSections ? (
-                        sections.map((section, idx) => (
-                          <section key={`${section.heading}-${idx}`}>
-                            <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
-                              {section.heading}
-                            </h3>
-                            {editMode ? (
-                              <textarea
-                                className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
-                                value={section.content}
-                                onChange={(e) =>
-                                  setSections((prev) =>
-                                    prev.map((item, itemIdx) =>
-                                      itemIdx === idx ? { ...item, content: e.target.value } : item
-                                    )
-                                  )
-                                }
-                              />
-                            ) : (
-                              <p className="text-slate-700 whitespace-pre-wrap">{section.content || "내용이 없습니다."}</p>
-                            )}
-                          </section>
-                        ))
-                      ) : (
-                        sectionDefs.map((section, idx) => (
-                          <section key={section.key}>
-                            <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
-                              {section.label}
-                            </h3>
-                            {editMode ? (
-                              <textarea
-                                className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
-                                value={content[section.key] ?? ""}
-                                onChange={(e) => setContent((prev) => ({ ...prev, [section.key]: e.target.value }))}
-                              />
-                            ) : (
-                              <p className="text-slate-700 whitespace-pre-wrap">{content[section.key] || "내용이 없습니다."}</p>
-                            )}
-                          </section>
-                        ))
+                      {report.status === "failed" && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-6">
+                          <p className="font-semibold mb-1">생성 실패</p>
+                          <p>{failureInfo}</p>
+                        </div>
                       )}
-                    </div>
+                      <div className="space-y-8 text-sm md:text-[15px] leading-relaxed text-justify">
+                        {hasDynamicSections ? (
+                          sections.map((section, idx) => (
+                            <section key={`${section.heading}-${idx}`} className="space-y-3">
+                              <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                                {section.heading}
+                              </h3>
+                              {editMode ? (
+                                <textarea
+                                  className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
+                                  value={section.content}
+                                  onChange={(e) =>
+                                    setSections((prev) =>
+                                      prev.map((item, itemIdx) =>
+                                        itemIdx === idx ? { ...item, content: e.target.value } : item
+                                      )
+                                    )
+                                  }
+                                />
+                              ) : (
+                                <div className="text-slate-700 whitespace-pre-wrap">
+                                  <ReactMarkdown
+                                    remarkPlugins={[remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                  >
+                                    {section.content || "내용이 없습니다."}
+                                  </ReactMarkdown>
+                                </div>
+                              )}
+                            </section>
+                          ))
+                        ) : (
+                          sectionDefs.map((section, idx) => (
+                            <section key={section.key}>
+                              <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                                {section.label}
+                              </h3>
+                              {editMode ? (
+                                <textarea
+                                  className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
+                                  value={content[section.key] ?? ""}
+                                  onChange={(e) => setContent((prev) => ({ ...prev, [section.key]: e.target.value }))}
+                                />
+                              ) : (
+                                <div className="text-slate-700 whitespace-pre-wrap">
+                                  <ReactMarkdown
+                                    remarkPlugins={[remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                  >
+                                    {content[section.key] || "내용이 없습니다."}
+                                  </ReactMarkdown>
+                                </div>
+                              )}
+                            </section>
+                          ))
+                        )}
+                      </div>
                     </>
                   )}
                 </div>
-
-                <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white via-white/70 to-transparent pointer-events-none" />
               </div>
             </div>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="rounded-3xl border-slate-200/70 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg">품질 지표</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-slate-700 space-y-2">
-                <p>평가 점수: {String(quality?.score ?? "-")}</p>
-                <p>승인 여부: {String(quality?.approved ?? "-")}</p>
-                <p>리비전 횟수: {String(pipeline?.revisions ?? "-")}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-3xl border-slate-200/70 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg">참고 문맥</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-slate-700">
-                {references.length === 0 ? <p>표시할 참고 문맥이 없습니다.</p> : references.map((r) => <p key={r}>{r}</p>)}
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-3xl border-slate-200/70 shadow-sm h-[420px] flex flex-col">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><MessageSquareText className="w-4 h-4" /> AI 대화</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3 flex-1 min-h-0">
-                <div className="border rounded-xl p-3 flex-1 overflow-y-auto space-y-2 bg-slate-50">
-                  {chatMessages.length === 0 && <p className="text-sm text-slate-500">문장 개선, 근거 보강, 논리 점검을 요청해보세요.</p>}
-                  {chatMessages.map((m, idx) => (
-                    <div key={`${m.role}-${idx}`} className={`text-sm p-2 rounded-lg ${m.role === "user" ? "bg-amber-100" : "bg-white"}`}>
-                      <p className="font-medium mb-1">{m.role === "user" ? "나" : "AI"}</p>
-                      <p className="whitespace-pre-wrap">{m.text}</p>
-                    </div>
-                  ))}
-                  {chatLoading && <p className="text-sm text-slate-500">AI 응답 생성 중...</p>}
-                </div>
-
-                <div className="flex gap-2">
-                  <Input
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="예: 분석 섹션을 더 엄밀하게 고쳐줘"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") onChatSend();
-                    }}
-                  />
-                  <Button onClick={onChatSend} disabled={chatLoading || isGenerating}>전송</Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

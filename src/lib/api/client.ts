@@ -45,13 +45,18 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
         headers['Authorization'] = `Bearer ${token}`;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
     const config: RequestInit = {
         ...customConfig,
         headers,
+        signal: controller.signal,
     };
 
     try {
         const response = await fetch(url, config);
+        clearTimeout(timeoutId);
 
         if (response.status === 401 && typeof window !== 'undefined') {
             // Handle token expiration / redirect to login
@@ -68,10 +73,13 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
         const errorData = data as ApiError;
         throw new Error(errorData.error?.message || errorData.detail || response.statusText);
     } catch (error: unknown) {
+        if (typeof error === 'string') {
+            return Promise.reject(error);
+        }
         if (error instanceof Error) {
             return Promise.reject(error.message);
         }
-        return Promise.reject('Something went wrong');
+        return Promise.reject(' something went wrong');
     }
 }
 

@@ -58,11 +58,11 @@ export default function LoginPage() {
       <Card className="max-w-md w-full border-0 shadow-2xl bg-white rounded-3xl">
         <CardHeader className="space-y-3 text-center pb-8">
           <div className="flex justify-center">
-            <div className="p-3 bg-blue-600 text-white rounded-2xl">
-              <BookOpen className="w-8 h-8" />
+            <div className="p-1">
+              <img src="/logo.png" alt="세특연구소 로고" className="w-16 h-16 object-contain" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-slate-900">Research-Mate 로그인</CardTitle>
+          <CardTitle className="text-3xl font-bold text-slate-900">세특연구소 로그인</CardTitle>
           <CardDescription className="text-slate-500">계정으로 로그인해 보고서를 저장하고 관리하세요.</CardDescription>
         </CardHeader>
         <CardContent>

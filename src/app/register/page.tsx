@@ -38,7 +38,7 @@ export default function RegisterPage() {
       });
       router.push("/login");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "회원가입 중 오류가 발생했습니다.");
+      setError(typeof err === 'string' ? err : "회원가입 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -49,12 +49,12 @@ export default function RegisterPage() {
       <Card className="max-w-md w-full border-0 shadow-2xl bg-white rounded-3xl">
         <CardHeader className="space-y-3 text-center pb-8">
           <div className="flex justify-center">
-            <div className="p-3 bg-blue-600 text-white rounded-2xl">
-              <BookOpen className="w-8 h-8" />
+            <div className="p-1">
+              <img src="/logo.png" alt="세특연구소 로고" className="w-16 h-16 object-contain" />
             </div>
           </div>
           <CardTitle className="text-3xl font-bold text-slate-900">회원가입</CardTitle>
-          <CardDescription className="text-slate-500">Research-Mate 계정을 만들고 시작하세요.</CardDescription>
+          <CardDescription className="text-slate-500">세특연구소 계정을 만들고 시작하세요.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
