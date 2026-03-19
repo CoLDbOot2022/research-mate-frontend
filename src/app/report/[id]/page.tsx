@@ -423,8 +423,6 @@ export default function ReportDetailPage() {
                     <p className="text-slate-500 italic text-xs mt-2">Advanced Subject Exploration Report</p>
                     <div className="flex justify-center gap-4 mt-5 text-xs text-slate-600 font-sans font-medium">
                       <span>생성일: {new Date(report.created_at).toLocaleString("ko-KR")}</span>
-                      <span className="text-slate-300">|</span>
-                      <span>LangGraph: {String(pipeline?.langgraph_enabled ?? "-")}</span>
                     </div>
                   </div>
 

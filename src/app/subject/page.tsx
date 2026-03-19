@@ -32,6 +32,7 @@ type PaymentSummary = {
   packages: Array<{
     code: string;
     credit_balance: number;
+    claim_remaining: number;
   }>;
 };
 
@@ -47,7 +48,7 @@ export default function SubjectPage() {
   const [large, setLarge] = useState(NONE_VALUE);
   const [medium, setMedium] = useState(NONE_VALUE);
   const [small, setSmall] = useState(NONE_VALUE);
-  const [reportType, setReportType] = useState<(typeof REPORT_TYPES)[number]["value"]>("general");
+  const [reportType, setReportType] = useState<(typeof REPORT_TYPES)[number]["value"] | null>(null);
   const [career, setCareer] = useState("");
   const [difficulty, setDifficulty] = useState("70");
   const [packageCredits, setPackageCredits] = useState<Record<string, number>>({});
@@ -111,6 +112,7 @@ export default function SubjectPage() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!reportType) return;
     setLoading(true);
     const query = new URLSearchParams({
       subject,
@@ -220,33 +222,49 @@ export default function SubjectPage() {
               <div className="md:col-span-3 space-y-2">
                 <Label>리포트 종류</Label>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                  {REPORT_TYPES.map((type) => (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => setReportType(type.value)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition ${
-                        reportType === type.value
-                          ? "border-2 border-slate-900 bg-white text-slate-900 shadow-sm"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold">{type.label}</p>
-                          <p className={`mt-1 text-xs ${reportType === type.value ? "text-slate-600" : "text-slate-500"}`}>{type.description}</p>
+                  {REPORT_TYPES.map((type) => {
+                    const remaining = packageCredits[type.packageCode];
+                    const hasNoCredits = remaining !== undefined && remaining <= 0;
+                    const isSelected = reportType === type.value;
+                    return (
+                      <button
+                        key={type.value}
+                        type="button"
+                        disabled={hasNoCredits}
+                        onClick={() => !hasNoCredits && setReportType(type.value)}
+                        className={`rounded-2xl border px-4 py-3 text-left transition ${
+                          hasNoCredits
+                            ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+                            : isSelected
+                            ? "border-2 border-slate-900 bg-white text-slate-900 shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold">{type.label}</p>
+                            <p className={`mt-1 text-xs ${isSelected && !hasNoCredits ? "text-slate-600" : "text-slate-500"}`}>
+                              {hasNoCredits ? "크레딧 없음 — 구매 후 이용 가능" : type.description}
+                            </p>
+                          </div>
+                          {remaining !== undefined ? (
+                            <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              hasNoCredits ? "bg-red-50 text-red-500" : isSelected ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-600"
+                            }`}>
+                              {remaining}회 남음
+                            </span>
+                          ) : null}
                         </div>
-                        {type.packageCode in packageCredits ? (
-                          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            reportType === type.value ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-600"
-                          }`}>
-                            {packageCredits[type.packageCode] ?? 0}회 남음
-                          </span>
-                        ) : null}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
+                {REPORT_TYPES.every((t) => (packageCredits[t.packageCode] ?? 1) <= 0) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    사용 가능한 크레딧이 없습니다.{" "}
+                    <a href="/credits" className="underline font-medium">크레딧 구매하기 →</a>
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -292,8 +310,8 @@ export default function SubjectPage() {
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-semibold rounded-xl bg-slate-900 hover:bg-slate-950">
-            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />추천 준비 중...</> : "주제 추천받기"}
+          <Button type="submit" disabled={loading || !reportType} className="w-full h-12 text-base font-semibold rounded-xl bg-slate-900 hover:bg-slate-950 disabled:opacity-50 disabled:cursor-not-allowed">
+            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />추천 준비 중...</> : reportType ? "주제 추천받기" : "리포트 종류를 선택해주세요"}
           </Button>
         </form>
       </div>

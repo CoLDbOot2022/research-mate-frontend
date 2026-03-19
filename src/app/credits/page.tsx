@@ -127,7 +127,6 @@ export default function CreditsPage() {
                 pkg.code === result.package_code
                   ? {
                       ...pkg,
-                      credit_balance: result.package_credit_balance ?? pkg.credit_balance + result.credits_added,
                       claim_count: result.package_claim_count,
                       claim_remaining: result.package_claim_remaining,
                     }
