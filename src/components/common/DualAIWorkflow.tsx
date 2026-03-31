@@ -77,7 +77,7 @@ export function DualAIWorkflow({
   useEffect(() => {
     const timer = setInterval(() => {
       setMessageIndex((prev) => prev + 1);
-    }, 4500);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -133,7 +133,7 @@ export function DualAIWorkflow({
           <CheckCircle2 className="w-4 h-4" />
         </div>
         <div>
-          <p className="text-sm font-bold text-blue-900">보고서 작성에는 약 3~5분 정도 소요됩니다.</p>
+          <p className="text-sm font-bold text-blue-900">보고서 작성에는 약 5~10분 정도 소요됩니다.</p>
           <p className="text-xs text-blue-700 mt-1">이 페이지를 벗어나도 <b>보고서는 백그라운드에서 안전하게 계속 생성됩니다.</b> 자유롭게 다른 작업을 하셔도 좋습니다.</p>
         </div>
       </div>      {phases && (

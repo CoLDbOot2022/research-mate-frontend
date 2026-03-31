@@ -299,7 +299,7 @@ export default function ReportDetailPage() {
               { label: "retrieve & plan", description: "교과서에서 RAG 컨텍스트를 추출하고 분석 계획을 수집합니다.", threshold: 48 },
               { label: "generate", description: "교과서 내용과 탐구 계획을 밀접하게 반영하여 초안을 작성합니다.", threshold: 74 },
               { label: "rewrite", description: "AI 점검 결과에 따른 피드백을 적용해 보강 및 재작성합니다.", threshold: 94 },
-              { label: "finalize", description: "최종 문서 형식을 맞추고 참고문헌을 정리합니다.", threshold: 100 },
+              { label: "finalize", description: "최종 문서 형식을 맞추고 내용을 정리합니다.", threshold: 100 },
             ]}
             reviewerTitle="Reviewer AI"
             reviewerSubtitle="8가지 루브릭 기반 품질 실시간 평가"

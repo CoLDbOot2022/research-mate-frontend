@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Star, FileText, Users, ThumbsUp, ArrowRight, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMindMap } from '@/context/MindMapContext';
@@ -43,14 +44,25 @@ export default function LandingPage() {
                 학년, 과목, 관심사에 맞춘 AI 기반 추천 서비스로 당신만의 경쟁력을 만드세요.
                 수행평가부터 세특까지, 막막했던 주제 선정을 도와드립니다.
               </p>
-              <div className="flex flex-wrap gap-3 pt-4">
+              <div className="flex flex-wrap gap-3 pt-10">
                 <Button size="lg" className="h-12 px-8 text-lg bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/subject')}>
                   주제 추천받기
                 </Button>
-                <Button size="lg" className="h-12 px-6 text-lg bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 font-bold flex items-center shadow-sm" onClick={() => window.open('https://open.kakao.com/o/gPm7rkbi', '_blank')}>
-                  <MessageCircle className="w-5 h-5 mr-2 fill-current" />
-                  연구소 오픈채팅방
-                </Button>
+                <div className="relative">
+                  <motion.div 
+                    initial={{ y: 0 }}
+                    animate={{ y: [-3, 0, -3] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-100/80 backdrop-blur-sm text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-blue-200 shadow-sm z-10"
+                  >
+                    가입 시 선착순 프리미엄 1회권 증정!
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-100/80 border-r border-b border-blue-200 rotate-45" />
+                  </motion.div>
+                  <Button size="lg" className="h-12 px-6 text-lg bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 font-bold flex items-center shadow-sm" onClick={() => window.open('https://open.kakao.com/o/gPm7rkbi', '_blank')}>
+                    <MessageCircle className="w-5 h-5 mr-2 fill-current" />
+                    연구소 오픈채팅방
+                  </Button>
+                </div>
               </div>
 
             </div>
@@ -144,10 +156,21 @@ export default function LandingPage() {
             <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => router.push('/subject')}>
               무료로 주제 추천받기
             </Button>
-            <Button size="lg" className="h-14 px-8 text-lg font-bold bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 flex items-center shadow-lg" onClick={() => window.open('https://open.kakao.com/o/gPm7rkbi', '_blank')}>
-              <MessageCircle className="w-6 h-6 mr-2 fill-current" />
-              연구소 오픈채팅방
-            </Button>
+            <div className="relative">
+              <motion.div 
+                initial={{ y: 0 }}
+                animate={{ y: [3, 0, 3] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-full mt-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/95 backdrop-blur-sm text-blue-600 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-white shadow-lg z-10"
+              >
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white/95 rotate-45 shadow-[-1px_-1px_1px_rgba(0,0,0,0.05)]" />
+                가입 시 선착순 프리미엄 1회권 증정!
+              </motion.div>
+              <Button size="lg" className="h-14 px-8 text-lg font-bold bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 flex items-center shadow-lg" onClick={() => window.open('https://open.kakao.com/o/gPm7rkbi', '_blank')}>
+                <MessageCircle className="w-6 h-6 mr-2 fill-current" />
+                연구소 오픈채팅방
+              </Button>
+            </div>
           </div>
         </div>
       </section>
