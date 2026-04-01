@@ -159,7 +159,7 @@ function TopicConfirmContent() {
         <div className="rounded-3xl border bg-white/80 backdrop-blur px-8 py-7 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 mb-2">추천 완료</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight">단 하나의 추천 주제</h1>
-          <p className="text-slate-600 mt-2">마음에 들면 바로 보고서를 생성하고, 아니면 재추천을 요청할 수 있습니다.</p>
+          <p className="text-slate-600 mt-2">이 주제가 마음에 드시나요? 아래 버튼을 눌러 바로 보고서 생성을 시작해 보세요.</p>
           <p className="text-sm font-medium text-slate-500 mt-3">선택한 리포트 종류: {reportTypeLabel}</p>
         </div>
 

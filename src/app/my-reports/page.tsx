@@ -15,6 +15,7 @@ type ReportItem = {
   subjects: string[];
   created_at: string;
   status: string;
+  report_type?: string;
   is_bookmarked: boolean;
   progress?: number;
   phase?: string;
@@ -104,7 +105,12 @@ export default function MyReportsPage() {
                         <FileText className="w-4 h-4" />
                       </div>
                       <div>
-                        <h2 className="font-semibold text-lg leading-snug">{r.title}</h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-semibold text-lg leading-snug">{r.title}</h2>
+                          {r.report_type === "premium" && (
+                            <span className="text-[10px] bg-slate-900 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Premium</span>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-500 mt-1 inline-flex items-center gap-1">
                           <CalendarDays className="w-3 h-3" /> {new Date(r.created_at).toLocaleString("ko-KR")}
                         </p>
