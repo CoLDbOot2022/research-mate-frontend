@@ -88,9 +88,6 @@ export default function MyPage() {
         <section className="rounded-[2rem] border border-slate-200 bg-white px-8 py-10 shadow-sm">
           <p className="text-sm font-semibold text-blue-600">MY PAGE</p>
           <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">내 계정과 크레딧 현황</h1>
-          <p className="mt-2 text-slate-600">
-            현재는 무료 이벤트 운영 기간이라 계정 정보와 이용 현황을 중심으로 보여줍니다.
-          </p>
         </section>
 
         <section className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">

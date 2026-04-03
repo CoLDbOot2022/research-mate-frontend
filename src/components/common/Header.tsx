@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { BookOpen, ChevronDown, CircleUserRound, CreditCard, LogOut, UserRound } from "lucide-react";
+import { BookOpen, ChevronDown, CircleUserRound, CreditCard, LogOut, Shield, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { clearAccessToken, getAccessToken } from "@/lib/auth";
@@ -155,6 +155,20 @@ export function Header() {
                     <CreditCard className="w-4 h-4" />
                     크레딧 충전
                   </button>
+
+                  {me.email === "coldbootcp@gmail.com" && (
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-50"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push("/admin");
+                      }}
+                    >
+                      <Shield className="w-4 h-4" />
+                      관리자
+                    </button>
+                  )}
 
                   <button
                     type="button"
