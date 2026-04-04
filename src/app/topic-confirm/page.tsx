@@ -12,6 +12,7 @@ import { api } from "@/lib/api/client";
 
 type Topic = {
   topic_id: string;
+  report_id?: string;
   title: string;
   reasoning: string;
   description: string;
@@ -58,44 +59,23 @@ function TopicConfirmContent() {
     return () => clearInterval(timer);
   }, [loading]);
 
-  const fetchTopic = useCallback(async (forceRefresh = false) => {
+  const fetchTopic = useCallback(async () => {
     setLoading(true);
     try {
       const body = getRequestBody();
-      const requestKey = getRequestKey();
-
-      if (!forceRefresh && typeof window !== "undefined") {
-        const cached = sessionStorage.getItem("topicConfirmCache");
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached) as { requestKey: string; topic: Topic };
-            if (parsed.requestKey === requestKey && parsed.topic) {
-              setTopic(parsed.topic);
-              setLoading(false);
-              return;
-            }
-          } catch {
-            // Ignore malformed cache and proceed to fetch.
-          }
-        }
-      }
-
       const res = await api.post<Topic[]>("/topics/recommend", body);
       const selected = res[0] ?? null;
       setTopic(selected);
-      if (selected && typeof window !== "undefined") {
-        sessionStorage.setItem("topicConfirmCache", JSON.stringify({ requestKey, topic: selected }));
-      }
     } catch (e) {
       console.error(e);
       setTopic(null);
     } finally {
       setLoading(false);
     }
-  }, [getRequestBody, getRequestKey]);
+  }, [getRequestBody]);
 
   useEffect(() => {
-    fetchTopic(false).catch(console.error);
+    fetchTopic().catch(console.error);
   }, [fetchTopic]);
 
   const onConfirm = async () => {
@@ -108,6 +88,7 @@ function TopicConfirmContent() {
     try {
       const res = await api.post<GenerateReportResponse>("/reports/generate", {
         topic_id: topic.topic_id,
+        report_id: topic.report_id,
         report_type: reportType,
       });
       // Redirect back to report detail page to watch progress

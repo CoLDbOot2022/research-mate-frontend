@@ -5,12 +5,15 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark,
   BookmarkCheck,
+  CheckCircle2,
   Download,
   Lightbulb,
   Loader2,
   MessageSquareText,
   Save,
   ShieldCheck,
+  Sparkles,
+  Wand2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -29,11 +32,13 @@ type ReportContent = Record<string, unknown>;
 
 type ReportResponse = {
   report_id: string;
-  status: "generating" | "completed" | "failed";
+  topic_id: string;
+  status: "generating" | "completed" | "failed" | "topic_generated";
   title: string;
   content: ReportContent | null;
   created_at: string;
   is_bookmarked: boolean;
+  report_type?: string;
   progress?: number | null;
   phase?: string | null;
   status_message?: string | null;
@@ -58,6 +63,10 @@ const sectionDefs = [
   { key: "limitations", label: "5. 한계 및 보완점" },
   { key: "conclusion", label: "6. 결론" },
 ] as const;
+
+type GenerateReportResponse = {
+  report_id: string;
+};
 
 export default function ReportDetailPage() {
   const router = useRouter();
@@ -169,6 +178,24 @@ export default function ReportDetailPage() {
       if (finishTimer) clearTimeout(finishTimer);
     };
   }, [reportId, router]);
+
+  const onStartGeneration = async () => {
+    if (!report) return;
+    setLoading(true);
+    try {
+      await api.post<GenerateReportResponse>("/reports/generate", {
+        topic_id: report.topic_id,
+        report_id: report.report_id,
+        report_type: report.report_type || "general",
+      });
+      // After starting, we stay on this page but it will now poll with "generating" status
+      window.location.reload(); 
+    } catch (e) {
+      console.error(e);
+      alert("보고서 생성 시작에 실패했습니다.");
+      setLoading(false);
+    }
+  };
 
   const references = useMemo(() => {
     const refs = report?.content?.references;
@@ -312,6 +339,64 @@ export default function ReportDetailPage() {
       </div>
     );
   }
+
+  if (report && report.status === "topic_generated") {
+    const reasoning = (report.content?.reasoning as string) || "";
+    const description = (report.content?.description as string) || "";
+    const tags = (report.content?.tags as string[]) || [];
+
+    return (
+      <div className="min-h-screen bg-[linear-gradient(135deg,#f8fafc_0%,#fff7ed_45%,#eef2ff_100%)] py-12 px-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="rounded-3xl border bg-white/80 backdrop-blur px-8 py-7 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500 mb-2">기록된 주제</p>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight">선택했던 추천 주제</h1>
+            <p className="text-slate-600 mt-2">이전 단계에서 선정된 주제입니다. 아래 버튼을 눌러 바로 보고서 생성을 시작해 보세요.</p>
+          </div>
+
+          <Card className="rounded-3xl border-slate-200/70 shadow-sm overflow-hidden bg-white/80 backdrop-blur">
+            <div className="h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-sky-500" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+                {report.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">추천 이유</p>
+                <p className="leading-relaxed text-slate-700">{reasoning || "내용이 없습니다."}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">탐구 방향</p>
+                <p className="leading-relaxed text-slate-700">{description || "내용이 없습니다."}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((t) => (
+                  <span key={t} className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium">#{t}</span>
+                ))}
+              </div>
+              
+              <div className="flex justify-center pt-4">
+                <Button 
+                  onClick={onStartGeneration} 
+                  className="h-14 bg-slate-900 hover:bg-slate-950 text-white rounded-xl px-12 text-lg font-bold shadow-lg transition-all hover:scale-[1.02]"
+                >
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                  보고서 생성 시작하기
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Button variant="ghost" onClick={() => router.push("/my-reports")} className="w-full text-slate-500">
+            기록 목록으로 돌아가기
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!report) return <div className="p-10 text-center">보고서를 찾을 수 없습니다.</div>;
 
   return (

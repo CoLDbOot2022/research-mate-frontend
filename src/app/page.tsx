@@ -45,9 +45,15 @@ export default function LandingPage() {
                 수행평가부터 세특까지, 막막했던 주제 선정을 도와드립니다.
               </p>
               <div className="flex flex-wrap gap-3 pt-10">
-                <Button size="lg" className="h-12 px-8 text-lg bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/subject')}>
-                  주제 추천받기
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button size="lg" className="h-14 px-10 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg" onClick={() => router.push('/subject')}>
+                    주제 추천받기
+                  </Button>
+                  <p className="text-[11px] text-slate-500 ml-1 font-medium italic opacity-90 leading-tight">
+                    * 현재 [수학] (공통/미적/기하/확통 등)만 지원됩니다.<br />
+                    (융합/경제수학 등 일부 과목 제외)
+                  </p>
+                </div>
                 <div className="relative">
                   <motion.div 
                     initial={{ y: 0 }}

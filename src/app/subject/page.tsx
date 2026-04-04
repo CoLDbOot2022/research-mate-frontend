@@ -50,7 +50,7 @@ export default function SubjectPage() {
   const [small, setSmall] = useState(NONE_VALUE);
   const [reportType, setReportType] = useState<(typeof REPORT_TYPES)[number]["value"] | null>(null);
   const [career, setCareer] = useState("");
-  const [difficulty, setDifficulty] = useState("70");
+  const [difficulty, setDifficulty] = useState("");
   const [packageCredits, setPackageCredits] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -112,7 +112,14 @@ export default function SubjectPage() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reportType) return;
+    if (!difficulty) {
+      alert("난이도를 선택해주세요.");
+      return;
+    }
+    if (!reportType) {
+      alert("리포트 종류를 선택해주세요.");
+      return;
+    }
     setLoading(true);
     const query = new URLSearchParams({
       subject,
@@ -166,7 +173,7 @@ export default function SubjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>대주제 (필수)</Label>
+                <Label>대단원 (선택)</Label>
                 <div className="relative">
                   <Select
                     value={large}
@@ -176,7 +183,7 @@ export default function SubjectPage() {
                       setSmall(NONE_VALUE);
                     }}
                   >
-                    <SelectTrigger><SelectValue placeholder="대주제 선택" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="대단원 선택" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
                       {units.map((u) => (
@@ -188,7 +195,7 @@ export default function SubjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>중주제 (선택)</Label>
+                <Label>중단원 (선택)</Label>
                 <Select
                   value={medium}
                   onValueChange={(v) => {
@@ -196,7 +203,7 @@ export default function SubjectPage() {
                     setSmall(NONE_VALUE);
                   }}
                 >
-                  <SelectTrigger><SelectValue placeholder="중주제 선택" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="중단원 선택" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
                     {mediumOptions.map((m) => (
@@ -207,9 +214,9 @@ export default function SubjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>소주제 (선택)</Label>
+                <Label>소단원 (선택)</Label>
                 <Select value={small} onValueChange={setSmall}>
-                  <SelectTrigger><SelectValue placeholder="소주제 선택" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="소단원 선택" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
                     {smallOptions.map((s) => (

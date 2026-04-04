@@ -130,6 +130,10 @@ export default function MyReportsPage() {
                         </div>
                       ) : r.status === "failed" ? (
                         <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase">실패</span>
+                      ) : r.status === "topic_generated" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">주제 선정 완료</span>
+                        </div>
                       ) : (
                         <div className="flex flex-col items-end gap-1">
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, CheckCircle2, CreditCard, LoaderCircle } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, CreditCard, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ type PaymentPackage = {
   claim_limit: number;
   claim_count: number;
   claim_remaining: number;
+  credit_balance?: number;
 };
 
 type PaymentSummary = {
@@ -127,6 +128,7 @@ export default function CreditsPage() {
                 pkg.code === result.package_code
                   ? {
                       ...pkg,
+                      credit_balance: result.package_credit_balance ?? (pkg.credit_balance ?? 0) + result.credits_added,
                       claim_count: result.package_claim_count,
                       claim_remaining: result.package_claim_remaining,
                     }
@@ -151,6 +153,20 @@ export default function CreditsPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.16),_transparent_26%),linear-gradient(180deg,#f8fbff_0%,#ffffff_38%,#f8fafc_100%)] px-4 py-12">
       <div className="mx-auto max-w-6xl space-y-8">
+        <div className="rounded-3xl border border-amber-200 bg-amber-50/50 p-6 flex gap-4 shadow-sm">
+          <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-900 leading-relaxed">
+            <p className="font-bold text-base mb-1">이용권 구매 전 필독 사항</p>
+            <p className="opacity-90">
+              현재 세특연구소는 [수학] 심화 탐구만 공식 지원하고 있습니다.<br />
+              <span className="mt-1 block font-medium">
+                지원 과목: 공통 수학1/2, 기본 수학1/2, 대수, 확률과 통계, 미적분1/2, 인공지능 수학, 기하
+              </span>
+              융합수학, 경제수학 등 위 목록에 없는 과목과 타 교과목(사회, 과학 등)은 현재 서비스 준비 중이오니, 이용권 구매 시 지원 여부를 반드시 확인해 주시기 바랍니다.
+            </p>
+          </div>
+        </div>
+
         <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-8 px-8 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:px-10">
             <div className="space-y-4">
