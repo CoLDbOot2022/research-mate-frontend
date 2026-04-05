@@ -74,8 +74,10 @@ export default function AdminPage() {
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [notAuthorized, setNotAuthorized] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (!getAccessToken()) {
       router.replace("/login");
       return;
@@ -245,7 +247,7 @@ export default function AdminPage() {
                            </div>
                         </td>
                         <td className="px-6 py-6 text-slate-500 text-xs font-mono">
-                          {user.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "—"}
+                          {mounted && user.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "—"}
                         </td>
                         {(["basic", "premium-review"] as const).map((code) => {
                           const balance = getPackageBalance(user, code);
@@ -302,7 +304,7 @@ export default function AdminPage() {
                           <div className="space-y-2 flex-1 max-w-[80%]">
                              <div className="flex items-center gap-3 mb-1">
                                 <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[11px] font-black uppercase">{iq.category}</span>
-                                <span className="text-slate-400 text-xs font-medium">{new Date(iq.created_at).toLocaleString('ko-KR')}</span>
+                                <span className="text-slate-400 text-xs font-medium">{mounted ? new Date(iq.created_at).toLocaleString('ko-KR') : ''}</span>
                              </div>
                              {expandedId === iq.id ? (
                                <h3 className="text-xl md:text-2xl font-bold text-slate-900">{iq.email}</h3>
@@ -366,7 +368,7 @@ export default function AdminPage() {
                                             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
                                           </div>
                                           <div className="flex items-center gap-2 mt-1.5 px-1">
-                                            <span className="text-[10px] text-slate-400">{new Date(msg.created_at).toLocaleString("ko-KR")}</span>
+                                            <span className="text-[10px] text-slate-400">{mounted ? new Date(msg.created_at).toLocaleString("ko-KR") : ""}</span>
                                             {msg.is_admin && (
                                               <button 
                                                 onClick={() => startEditing(msg)}

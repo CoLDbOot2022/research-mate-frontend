@@ -53,15 +53,21 @@ export default function SupportPage() {
   const [replyTexts, setReplyTexts] = useState<Record<number, string>>({});
   const [replyingId, setReplyingId] = useState<number | null>(null);
 
-  const isLoggedIn = !!getAccessToken();
+  const [mounted, setMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    setMounted(true);
+    const token = getAccessToken();
+    const authed = !!token;
+    setIsLoggedIn(authed);
+    
+    if (authed) {
+      loadInquiries();
+    } else {
       router.push("/login?redirect=/support");
-      return;
     }
-    loadInquiries();
-  }, [isLoggedIn, router]);
+  }, [router]);
 
   const loadInquiries = async () => {
     try {
@@ -111,7 +117,13 @@ export default function SupportPage() {
     }
   };
 
-  if (!isLoggedIn) return null;
+  if (!mounted || !isLoggedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.08),_transparent_25%),linear-gradient(180deg,#f8fafc_0%,#ffffff_100%)] px-4 py-12">
@@ -213,7 +225,7 @@ export default function SupportPage() {
                             {CATEGORIES.find(c => c.value === inquiry.category)?.label || inquiry.category}
                           </span>
                           <span className="text-xs text-slate-400">
-                            {new Date(inquiry.created_at).toLocaleDateString("ko-KR")}
+                            {mounted ? new Date(inquiry.created_at).toLocaleDateString("ko-KR") : ""}
                           </span>
                         </div>
                         <p className={`font-medium text-slate-900 ${expandedId === inquiry.id ? "whitespace-pre-wrap mt-3 text-sm leading-relaxed" : "line-clamp-1"}`}>
@@ -247,7 +259,9 @@ export default function SupportPage() {
                                   {msg.is_admin && <p className="text-[10px] font-black text-blue-600 mb-1.5 uppercase tracking-wide">관리자 답변</p>}
                                   <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
                                 </div>
-                                <span className="text-[10px] text-slate-400 mt-1.5 px-1">{new Date(msg.created_at).toLocaleString("ko-KR")}</span>
+                                <span className="text-[10px] text-slate-400 mt-1.5 px-1">
+                                  {mounted ? new Date(msg.created_at).toLocaleString("ko-KR") : ""}
+                                </span>
                               </div>
                             ))}
                             

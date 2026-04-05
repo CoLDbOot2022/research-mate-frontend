@@ -80,9 +80,11 @@ export default function CreditsPage() {
   const [claimingCode, setClaimingCode] = useState("");
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"success" | "neutral">("neutral");
+  const [mounted, setMounted] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const token = getAccessToken();
     if (!token) {
       router.replace("/login");
@@ -194,13 +196,13 @@ export default function CreditsPage() {
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
                   <p className="text-xs text-slate-400 mb-1.5 font-medium">기본 요금제</p>
                   <p className="text-2xl font-black text-white">
-                    {loading ? "..." : `${summary?.packages.find(p => p.code === "basic")?.credit_balance ?? 0}회`}
+                    {mounted && !loading ? `${summary?.packages.find(p => p.code === "basic")?.credit_balance ?? 0}회` : "..."}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
                   <p className="text-xs text-emerald-400 mb-1.5 font-bold">프리미엄 검수</p>
                   <p className="text-2xl font-black text-emerald-400">
-                    {loading ? "..." : `${summary?.packages.find(p => p.code === "premium-review")?.credit_balance ?? 0}회`}
+                    {mounted && !loading ? `${summary?.packages.find(p => p.code === "premium-review")?.credit_balance ?? 0}회` : "..."}
                   </p>
                 </div>
               </div>
@@ -247,10 +249,10 @@ export default function CreditsPage() {
                   </p>
                   <div className="mt-3 flex items-end gap-3">
                     <span className="text-5xl font-black tracking-tight text-slate-950">
-                      {plan.amount.toLocaleString("ko-KR")}원
+                      {mounted ? plan.amount.toLocaleString("ko-KR") : "..."}원
                     </span>
                     <span className="pb-1 text-sm text-slate-400 line-through">
-                      {plan.original_amount.toLocaleString("ko-KR")}원
+                      {mounted ? plan.original_amount.toLocaleString("ko-KR") : "..."}원
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-slate-500">
@@ -294,7 +296,7 @@ export default function CreditsPage() {
                       결제 진행 중...
                     </>
                   ) : (
-                    `${plan.amount.toLocaleString("ko-KR")}원 결제하기`
+                    `${mounted ? plan.amount.toLocaleString("ko-KR") : "..."}원 결제하기`
                   )}
                 </Button>
               </CardContent>

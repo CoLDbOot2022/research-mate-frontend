@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -7,6 +8,11 @@ import { getAccessToken } from "@/lib/auth";
 
 export function InquiryFAB() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleClick = () => {
     if (getAccessToken()) {
@@ -15,6 +21,8 @@ export function InquiryFAB() {
       router.push("/login?redirect=/support");
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <motion.button
