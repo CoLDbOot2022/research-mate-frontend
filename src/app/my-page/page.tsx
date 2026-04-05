@@ -144,7 +144,7 @@ export default function MyPage() {
               </div>
 
               <Button className="h-11 w-full rounded-xl bg-blue-600 font-bold hover:bg-blue-700" onClick={() => router.push("/credits")}>
-                이벤트 페이지 보기
+                이용권 충전
               </Button>
             </CardContent>
           </Card>

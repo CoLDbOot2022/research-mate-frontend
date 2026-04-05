@@ -153,7 +153,7 @@ export function Header() {
                     }}
                   >
                     <CreditCard className="w-4 h-4" />
-                    크레딧 충전
+                    이용권 충전
                   </button>
 
                   {me.email === "coldbootcp@gmail.com" && (

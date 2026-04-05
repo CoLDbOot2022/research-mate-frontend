@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Star, FileText, Users, ThumbsUp, ArrowRight, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -195,8 +196,12 @@ export default function LandingPage() {
               <span>대표자: 류한준, 강필중</span>
               <span>사업자등록번호: 000-00-00000</span>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 items-center justify-center md:justify-end">
               <span>이메일: coldbootcp@gmail.com</span>
+              <Link href="/terms" className="font-bold text-slate-600 hover:text-slate-900 transition-colors">이용약관</Link>
+              <span className="text-slate-300">|</span>
+              <Link href="/privacy" className="font-bold text-slate-600 hover:text-slate-900 transition-colors">개인정보처리방침</Link>
+              <span className="text-slate-300">|</span>
               <span>© 2026 ColdBoot. All rights reserved.</span>
             </div>
           </div>

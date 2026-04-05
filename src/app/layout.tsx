@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/common/Header";
+import { InquiryFAB } from "@/components/common/InquiryFAB";
 import { MindMapProvider } from "@/context/MindMapContext";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({
         <MindMapProvider>
           <Header />
           <main>{children}</main>
+          <InquiryFAB />
         </MindMapProvider>
         {/* Footer could be added here or in individual pages if distinct */}
       </body>

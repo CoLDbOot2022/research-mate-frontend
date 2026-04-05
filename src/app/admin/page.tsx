@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { Loader2, Minus, Plus, Shield, Users } from "lucide-react";
-
+import { Loader2, MessageSquare, Minus, Plus, Shield, Users, CheckCircle2, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
 
@@ -23,6 +24,25 @@ type AdminUser = {
   package_credits: PackageCredit[];
 };
 
+type InquiryMessage = {
+  id: number;
+  inquiry_id: number;
+  is_admin: boolean;
+  content: string;
+  created_at: string;
+};
+
+type Inquiry = {
+  id: number;
+  user_id?: number;
+  category: string;
+  email?: string;
+  content: string;
+  status: string;
+  created_at: string;
+  messages: InquiryMessage[];
+};
+
 type AdjustResponse = {
   user_id: number;
   package_code: string;
@@ -37,10 +57,22 @@ const PACKAGE_LABELS: Record<string, string> = {
 
 export default function AdminPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"users" | "inquiries">("users");
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [adjustingKey, setAdjustingKey] = useState("");
+  
+  // Reply State
+  const [replyTexts, setReplyTexts] = useState<Record<number, string>>({});
+  const [replyingId, setReplyingId] = useState<number | null>(null);
 
+  // Edit State
+  const [editingMsgId, setEditingMsgId] = useState<number | null>(null);
+  const [editingMsgText, setEditingMsgText] = useState("");
+  const [submittingEditId, setSubmittingEditId] = useState<number | null>(null);
+
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [notAuthorized, setNotAuthorized] = useState(false);
 
   useEffect(() => {
@@ -51,8 +83,12 @@ export default function AdminPage() {
 
     const load = async () => {
       try {
-        const data = await api.get<AdminUser[]>("/admin/users");
-        setUsers(data);
+        const [userData, inquiryData] = await Promise.all([
+          api.get<AdminUser[]>("/admin/users"),
+          api.get<Inquiry[]>("/admin/inquiries"),
+        ]);
+        setUsers(userData);
+        setInquiries(inquiryData);
       } catch {
         setNotAuthorized(true);
       } finally {
@@ -97,6 +133,50 @@ export default function AdminPage() {
     }
   };
 
+  const submitAnswer = async (inquiryId: number) => {
+    const text = replyTexts[inquiryId];
+    if (!text || !text.trim()) return;
+    
+    setReplyingId(inquiryId);
+    try {
+      const updated = await api.post<Inquiry>(`/admin/inquiries/${inquiryId}/answer`, {
+        answer: text,
+      });
+      setInquiries((prev) => prev.map((iq) => (iq.id === inquiryId ? updated : iq)));
+      setReplyTexts((prev) => ({ ...prev, [inquiryId]: "" }));
+    } catch {
+      alert("답변 등록에 실패했습니다.");
+    } finally {
+      setReplyingId(null);
+    }
+  };
+
+  const startEditing = (msg: InquiryMessage) => {
+    setEditingMsgId(msg.id);
+    setEditingMsgText(msg.content);
+  };
+
+  const cancelEditing = () => {
+    setEditingMsgId(null);
+    setEditingMsgText("");
+  };
+
+  const submitEdit = async (inquiryId: number, msgId: number) => {
+    if (!editingMsgText.trim()) return;
+    setSubmittingEditId(msgId);
+    try {
+      const updated = await api.put<Inquiry>(`/admin/inquiries/${inquiryId}/messages/${msgId}`, {
+        content: editingMsgText,
+      });
+      setInquiries((prev) => prev.map((iq) => (iq.id === inquiryId ? updated : iq)));
+      cancelEditing();
+    } catch {
+      alert("답변 수정에 실패했습니다.");
+    } finally {
+      setSubmittingEditId(null);
+    }
+  };
+
   const getPackageBalance = (user: AdminUser, code: string) => {
     return user.package_credits.find((pc) => pc.package_code === code)?.credit_balance ?? 0;
   };
@@ -111,80 +191,222 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f1f5f9_0%,#ffffff_30%,#eef2ff_100%)] py-10 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="rounded-3xl border bg-white/80 backdrop-blur p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-6 h-6 text-indigo-600" />
-            <h1 className="text-3xl font-black tracking-tight">관리자 대시보드</h1>
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="rounded-[2.5rem] border bg-white/80 backdrop-blur p-10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-600 rounded-2xl p-2.5">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-4xl font-black tracking-tight text-slate-900">Admin Dashboard</h1>
+            </div>
+            <p className="text-slate-500 font-medium ml-1">서비스 현황 및 고객 문의 관리</p>
           </div>
-          <p className="text-slate-600">가입된 유저 {users.length}명의 크레딧 현황을 관리합니다.</p>
+          
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+            <button 
+              onClick={() => setActiveTab("users")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <div className="flex items-center gap-2"><Users className="w-4 h-4" /> 유저 관리</div>
+            </button>
+            <button 
+              onClick={() => setActiveTab("inquiries")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'inquiries' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <div className="flex items-center gap-2"><MessageSquare className="w-4 h-4" /> 문의 내역 ({inquiries.filter(i => i.status === 'pending').length})</div>
+            </button>
+          </div>
         </div>
 
-        <Card className="rounded-3xl border-slate-200/70 shadow-sm overflow-hidden">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Users className="w-5 h-5" /> 유저 목록
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/80 text-left">
-                    <th className="px-6 py-3 font-semibold text-slate-600">ID</th>
-                    <th className="px-6 py-3 font-semibold text-slate-600">이메일</th>
-                    <th className="px-6 py-3 font-semibold text-slate-600">이름</th>
-                    <th className="px-6 py-3 font-semibold text-slate-600">가입일</th>
-                    <th className="px-6 py-3 font-semibold text-slate-600 text-center">일반 리포트</th>
-                    <th className="px-6 py-3 font-semibold text-slate-600 text-center">프리미엄 리포트</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-6 py-4 text-slate-500 font-mono text-xs">{user.id}</td>
-                      <td className="px-6 py-4 font-medium text-slate-800">{user.email}</td>
-                      <td className="px-6 py-4 text-slate-600">{user.name || "—"}</td>
-                      <td className="px-6 py-4 text-slate-500 text-xs">
-                        {user.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "—"}
-                      </td>
-                      {(["basic", "premium-review"] as const).map((code) => {
-                        const balance = getPackageBalance(user, code);
-                        return (
-                          <td key={code} className="px-6 py-4">
-                            <div className="flex items-center justify-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-7 w-7 rounded-full border-slate-200"
-                                disabled={adjustingKey !== "" || balance <= 0}
-                                onClick={() => adjustCredit(user.id, code, -1)}
-                              >
-                                <Minus className="w-3 h-3" />
-                              </Button>
-                              <span className={`min-w-[2rem] text-center font-bold text-base ${balance > 0 ? "text-slate-900" : "text-slate-400"}`}>
-                                {balance}
-                              </span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-7 w-7 rounded-full border-slate-200"
-                                disabled={adjustingKey !== ""}
-                                onClick={() => adjustCredit(user.id, code, 1)}
-                              >
-                                <Plus className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        );
-                      })}
+        {activeTab === "users" ? (
+          <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
+            <CardHeader className="px-10 pt-10">
+              <CardTitle className="flex items-center gap-2 text-2xl font-black"><Users className="w-6 h-6" /> 가입 유저 목록</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/50 text-left">
+                      <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">사용자</th>
+                      <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">가입일</th>
+                      <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">일반 리포트</th>
+                      <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">프리미엄 리포트</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {users.map((user) => (
+                      <tr key={user.id} className="hover:bg-indigo-50/30 transition-colors">
+                        <td className="px-10 py-6">
+                           <div className="flex flex-col">
+                             <span className="font-bold text-slate-900 text-base">{user.name || "미지정"}</span>
+                             <span className="text-slate-500 text-xs">{user.email}</span>
+                           </div>
+                        </td>
+                        <td className="px-6 py-6 text-slate-500 text-xs font-mono">
+                          {user.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "—"}
+                        </td>
+                        {(["basic", "premium-review"] as const).map((code) => {
+                          const balance = getPackageBalance(user, code);
+                          return (
+                            <td key={code} className="px-6 py-6">
+                              <div className="flex items-center justify-center gap-3">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-xl border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
+                                  disabled={adjustingKey !== "" || balance <= 0}
+                                  onClick={() => adjustCredit(user.id, code, -1)}
+                                >
+                                  <Minus className="w-3.5 h-3.5" />
+                                </Button>
+                                <span className={`min-w-[2.5rem] text-center font-black text-lg ${balance > 0 ? "text-slate-900" : "text-slate-300"}`}>
+                                  {balance}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-xl border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all"
+                                  disabled={adjustingKey !== ""}
+                                  onClick={() => adjustCredit(user.id, code, 1)}
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+             {inquiries.length === 0 ? (
+               <Card className="rounded-[2.5rem] border-dashed border-slate-300 py-32 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400">
+                  <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
+                  <p className="text-xl font-bold">도착한 문의가 없습니다.</p>
+               </Card>
+             ) : (
+               inquiries.map((iq) => (
+                 <Card key={iq.id} className={`rounded-[2rem] border-slate-200/70 shadow-sm overflow-hidden transition-all ${iq.status === 'pending' ? 'ring-2 ring-indigo-100 bg-white' : 'bg-slate-50/80 grayscale-[0.3]'}`}>
+                    <div 
+                      className={`cursor-pointer ${expandedId === iq.id ? 'p-8 md:p-10 pb-4 md:pb-6' : 'px-6 py-5 md:px-8 md:py-6'} transition-all`}
+                      onClick={() => setExpandedId(expandedId === iq.id ? null : iq.id)}
+                    >
+                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                          <div className="space-y-2 flex-1 max-w-[80%]">
+                             <div className="flex items-center gap-3 mb-1">
+                                <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[11px] font-black uppercase">{iq.category}</span>
+                                <span className="text-slate-400 text-xs font-medium">{new Date(iq.created_at).toLocaleString('ko-KR')}</span>
+                             </div>
+                             {expandedId === iq.id ? (
+                               <h3 className="text-xl md:text-2xl font-bold text-slate-900">{iq.email}</h3>
+                             ) : (
+                               <div>
+                                 <h3 className="text-base font-bold text-slate-900">{iq.email}</h3>
+                                 <p className="line-clamp-1 text-sm text-slate-500 mt-1.5">{iq.content}</p>
+                               </div>
+                             )}
+                          </div>
+                          
+                          <div className="flex items-center gap-4 shrink-0 mt-2 md:mt-0">
+                            {iq.status === 'answered' ? (
+                              <span className="flex items-center gap-1.5 text-emerald-600 font-black text-sm bg-emerald-50 px-4 py-2 rounded-2xl">
+                                <CheckCircle2 className="w-4 h-4" /> 답변 완료
+                              </span>
+                            ) : (
+                              <span className="text-indigo-600 font-black text-sm bg-indigo-50 px-4 py-2 rounded-2xl">답변 대기 중</span>
+                            )}
+                            {expandedId === iq.id ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                          </div>
+                       </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {expandedId === iq.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="px-8 md:px-10 pb-8 md:pb-10 pt-0 overflow-hidden flex flex-col gap-4"
+                        >
+                           <div className="bg-slate-50/80 rounded-2xl p-6 text-slate-800 text-base leading-relaxed mb-8 border border-slate-100 mt-2">
+                              {iq.content}
+                           </div>
+
+                           <div className="border-t border-slate-100 pt-8 space-y-6">
+                              {iq.messages?.length > 0 && (
+                                <div className="space-y-4">
+                                  {iq.messages.map((msg) => (
+                                    <div key={msg.id} className={`flex flex-col ${msg.is_admin ? "items-end" : "items-start"}`}>
+                                      {editingMsgId === msg.id ? (
+                                        <div className="w-full max-w-[85%] bg-white p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3 animate-in fade-in">
+                                          <Textarea
+                                            className="min-h-[100px] resize-none border-slate-200 focus:ring-indigo-500 rounded-xl"
+                                            value={editingMsgText}
+                                            onChange={(e) => setEditingMsgText(e.target.value)}
+                                            placeholder="수정할 답변 내용을 입력하세요..."
+                                          />
+                                          <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="sm" className="rounded-lg" onClick={cancelEditing}>취소</Button>
+                                            <Button size="sm" className="bg-indigo-600 rounded-lg px-4" disabled={submittingEditId === msg.id} onClick={() => submitEdit(iq.id, msg.id)}>
+                                              {submittingEditId === msg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "저장"}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <div className={`max-w-[85%] rounded-2xl p-4 ${!msg.is_admin ? "bg-white border border-slate-200 shadow-sm rounded-tl-sm" : "bg-indigo-600 text-white shadow-sm rounded-tr-sm"}`}>
+                                            {!msg.is_admin && <p className="text-[10px] font-black text-indigo-600 mb-1.5 uppercase tracking-wide">사용자 추가 답변</p>}
+                                            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                                          </div>
+                                          <div className="flex items-center gap-2 mt-1.5 px-1">
+                                            <span className="text-[10px] text-slate-400">{new Date(msg.created_at).toLocaleString("ko-KR")}</span>
+                                            {msg.is_admin && (
+                                              <button 
+                                                onClick={() => startEditing(msg)}
+                                                className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 transition-colors"
+                                              >
+                                                수정
+                                              </button>
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="flex gap-2">
+                                <Textarea 
+                                  className="min-h-[50px] resize-none rounded-xl border-slate-200 bg-white" 
+                                  placeholder="답변을 입력해주세요..."
+                                  value={replyTexts[iq.id] || ""}
+                                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyTexts(prev => ({ ...prev, [iq.id]: e.target.value }))}
+                                />
+                                <Button 
+                                  className="h-auto rounded-xl bg-indigo-600 px-6 shrink-0 transition-transform active:scale-95"
+                                  disabled={replyingId === iq.id || !(replyTexts[iq.id]?.trim())}
+                                  onClick={() => submitAnswer(iq.id)}
+                                >
+                                  {replyingId === iq.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                </Button>
+                              </div>
+                           </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                 </Card>
+               ))
+             )}
+          </div>
+        )}
       </div>
     </div>
   );
