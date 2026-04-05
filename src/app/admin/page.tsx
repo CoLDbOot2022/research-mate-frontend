@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { Loader2, Minus, Plus, Shield, Users } from "lucide-react";
+import { ClipboardList, Loader2, Minus, Plus, Shield, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +30,14 @@ type AdjustResponse = {
   delta: number;
 };
 
+type AwaitingReport = {
+  report_id: string;
+  title: string;
+  user_email: string;
+  created_at: string;
+  status: string;
+};
+
 const PACKAGE_LABELS: Record<string, string> = {
   basic: "일반 리포트",
   "premium-review": "프리미엄 리포트",
@@ -38,6 +46,7 @@ const PACKAGE_LABELS: Record<string, string> = {
 export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [awaitingReports, setAwaitingReports] = useState<AwaitingReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [adjustingKey, setAdjustingKey] = useState("");
 
@@ -51,8 +60,12 @@ export default function AdminPage() {
 
     const load = async () => {
       try {
-        const data = await api.get<AdminUser[]>("/admin/users");
-        setUsers(data);
+        const [userData, reportData] = await Promise.all([
+          api.get<AdminUser[]>("/admin/users"),
+          api.get<AwaitingReport[]>("/admin/reports/awaiting-review")
+        ]);
+        setUsers(userData);
+        setAwaitingReports(reportData);
       } catch {
         setNotAuthorized(true);
       } finally {
@@ -62,6 +75,14 @@ export default function AdminPage() {
 
     load().catch(console.error);
   }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   if (notAuthorized) {
     notFound();
@@ -101,13 +122,6 @@ export default function AdminPage() {
     return user.package_credits.find((pc) => pc.package_code === code)?.credit_balance ?? 0;
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f1f5f9_0%,#ffffff_30%,#eef2ff_100%)] py-10 px-4">
@@ -183,6 +197,54 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-slate-200/70 shadow-sm overflow-hidden">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <ClipboardList className="w-5 h-5" /> 멘토 리뷰 대기 목록
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {awaitingReports.length === 0 ? (
+              <div className="p-10 text-center text-slate-500 bg-slate-50/30">
+                현재 리뷰 대기 중인 리포트가 없습니다.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/80 text-left">
+                      <th className="px-6 py-3 font-semibold text-slate-600">리포트 제목</th>
+                      <th className="px-6 py-3 font-semibold text-slate-600">요청 유저</th>
+                      <th className="px-6 py-3 font-semibold text-slate-600">생성일</th>
+                      <th className="px-6 py-3 font-semibold text-slate-600 text-center">작업</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {awaitingReports.map((report) => (
+                      <tr key={report.report_id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-6 py-4 font-medium text-slate-800">{report.title}</td>
+                        <td className="px-6 py-4 text-slate-500">{report.user_email}</td>
+                        <td className="px-6 py-4 text-slate-500 text-xs text-nowrap">
+                          {new Date(report.created_at).toLocaleString("ko-KR")}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <Button
+                            size="sm"
+                            className="bg-indigo-600 hover:bg-indigo-700 rounded-full px-4"
+                            onClick={() => router.push(`/admin/review/${report.report_id}`)}
+                          >
+                            리뷰하기
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
