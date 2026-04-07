@@ -115,13 +115,13 @@ export function PhaseProgress({
               }`}
             >
               <div className="flex items-center justify-between">
-                <p className={`text-[15px] font-bold ${active ? "text-indigo-900" : done ? "text-emerald-800" : "text-slate-600"}`}>
+                <p className={`text-[15px] font-bold ${active ? "text-slate-900" : done ? "text-slate-800" : "text-slate-600"}`}>
                   {phase.label}
                 </p>
-                {active && <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />}
-                {done && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                {active && <Sparkles className="w-4 h-4 text-slate-500 animate-pulse" />}
+                {done && <CheckCircle2 className="w-4 h-4 text-slate-500" />}
               </div>
-              <p className={`text-[13px] mt-1 ${active ? "text-indigo-700/80 font-medium" : "text-slate-500"}`}>
+              <p className={`text-[13px] mt-1 ${active ? "text-slate-700/80 font-medium" : "text-slate-500"}`}>
                 {phase.description}
               </p>
             </div>
@@ -135,7 +135,7 @@ export function PhaseProgress({
           <div className="space-y-1.5">
             {visibleLogs.map((log, idx) => (
               <p key={`${log}-${idx}`} className="text-xs text-slate-700 inline-flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-indigo-500" /> {log}
+                <Sparkles className="w-3 h-3 text-slate-500" /> {log}
               </p>
             ))}
           </div>
@@ -146,15 +146,15 @@ export function PhaseProgress({
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 md:p-5 shadow-sm">
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
+              <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
                 <HelpCircle className="w-4 h-4" />
               </div>
-              <p className="text-sm font-bold text-amber-900">잠깐 퀴즈</p>
+              <p className="text-sm font-bold text-slate-900">잠깐 퀴즈</p>
             </div>
             {selectedIdx !== null && (
               <button
                 onClick={handleNextQuiz}
-                className="text-xs font-bold bg-amber-200 text-amber-900 px-3 py-1.5 rounded-lg hover:bg-amber-300 transition-colors flex items-center gap-1"
+                className="text-xs font-bold bg-slate-200 text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-300 transition-colors flex items-center gap-1"
               >
                 다음 문제 <ArrowRight className="w-3 h-3" />
               </button>
@@ -201,11 +201,11 @@ export function PhaseProgress({
           {selectedIdx !== null && (
             <div className={`mt-4 animate-in fade-in slide-in-from-top-2 duration-500 text-center`}>
               {selectedIdx === currentInteractiveQuiz.answerIndex ? (
-                <p className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 justify-center">
+                <p className="text-xs font-bold text-slate-600 flex items-center gap-1.5 justify-center">
                   <span className="text-lg">🎉</span> 정답입니다! 연구 역량이 +1 상승했습니다.
                 </p>
               ) : (
-                <p className="text-xs font-bold text-red-500 flex items-center gap-1.5 justify-center">
+                <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 justify-center">
                   <span className="text-lg">😢</span> 아쉬워요! 정답은 "{currentInteractiveQuiz.options[currentInteractiveQuiz.answerIndex]}"입니다.
                 </p>
               )}

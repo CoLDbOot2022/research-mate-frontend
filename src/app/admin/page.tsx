@@ -2,7 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { Loader2, MessageSquare, Minus, Plus, Shield, Users, CheckCircle2, Send, ChevronDown, ChevronUp, FileText, FileCheck, Edit } from "lucide-react";
+import { 
+  Loader2, 
+  MessageSquare, 
+  Minus, 
+  Plus, 
+  Shield, 
+  Users, 
+  CheckCircle2, 
+  Send, 
+  ChevronDown, 
+  ChevronUp, 
+  FileText, 
+  FileCheck, 
+  Edit,
+  ClipboardList 
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,15 +35,6 @@ type AdminReport = {
   title: string;
   user_email: string;
   created_at: string;
-  status: string;
-};
-
-type ReportContent = Record<string, any>;
-
-type ReportDetail = {
-  report_id: string;
-  title: string;
-  content: ReportContent | null;
   status: string;
 };
 
@@ -80,12 +86,6 @@ export default function AdminPage() {
   const [reports, setReports] = useState<AdminReport[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Review State
-  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
-  const [reportDetail, setReportDetail] = useState<ReportDetail | null>(null);
-  const [reportLoading, setReportLoading] = useState(false);
-  const [mentorComment, setMentorComment] = useState("");
-  const [submittingReview, setSubmittingReview] = useState(false);
   const [adjustingKey, setAdjustingKey] = useState("");
   
   // Reply State
@@ -127,6 +127,14 @@ export default function AdminPage() {
 
     load().catch(console.error);
   }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   if (notAuthorized) {
     notFound();
@@ -206,49 +214,9 @@ export default function AdminPage() {
     }
   };
 
-  const loadReportDetail = async (reportId: string) => {
-    setReportLoading(true);
-    try {
-      const detail = await api.get<ReportDetail>(`/admin/reports/${reportId}`);
-      setReportDetail(detail);
-      setMentorComment("");
-    } catch {
-      alert("리포트 내용을 불러오지 못했습니다.");
-    } finally {
-      setReportLoading(false);
-    }
-  };
-
-  const submitReview = async () => {
-    if (!reportDetail || !selectedReportId) return;
-    setSubmittingReview(true);
-    try {
-      await api.post(`/admin/reports/${selectedReportId}/review`, {
-        content: reportDetail.content,
-        mentor_comment: mentorComment,
-      });
-      alert("감수가 완료되었습니다.");
-      setReports((prev) => prev.filter((r) => r.report_id !== selectedReportId));
-      setSelectedReportId(null);
-      setReportDetail(null);
-    } catch {
-      alert("감수 제출에 실패했습니다.");
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
-
   const getPackageBalance = (user: AdminUser, code: string) => {
     return user.package_credits.find((pc) => pc.package_code === code)?.credit_balance ?? 0;
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f1f5f9_0%,#ffffff_30%,#eef2ff_100%)] py-10 px-4">
@@ -474,113 +442,53 @@ export default function AdminPage() {
              )}
           </div>
         ) : (
-          <div className="space-y-6">
-            {reports.length === 0 ? (
-              <Card className="rounded-[2.5rem] border-dashed border-slate-300 py-32 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400">
-                <FileText className="w-12 h-12 mb-4 opacity-20" />
-                <p className="text-xl font-bold">감수 대기 중인 리포트가 없습니다.</p>
-              </Card>
-            ) : (
-              reports.map((r) => (
-                <Card key={r.report_id} className={`rounded-[2rem] border-slate-200/70 shadow-sm overflow-hidden transition-all bg-white`}>
-                  <div 
-                    className={`cursor-pointer ${selectedReportId === r.report_id ? 'p-8 md:p-10 pb-4 md:pb-6' : 'px-6 py-5 md:px-8 md:py-6'} transition-all`}
-                    onClick={() => {
-                      if (selectedReportId === r.report_id) {
-                        setSelectedReportId(null);
-                        setReportDetail(null);
-                      } else {
-                        setSelectedReportId(r.report_id);
-                        loadReportDetail(r.report_id);
-                      }
-                    }}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[11px] font-black uppercase">Premium Review</span>
-                          <span className="text-slate-400 text-xs font-medium">{mounted ? new Date(r.created_at).toLocaleString('ko-KR') : ''}</span>
-                        </div>
-                        <h3 className="text-xl md:text-2xl font-bold text-slate-900">{r.title}</h3>
-                        <p className="text-sm text-slate-500 font-medium">{r.user_email}</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 shrink-0 mt-2 md:mt-0">
-                        <span className="text-orange-600 font-black text-sm bg-orange-50 px-4 py-2 rounded-2xl">감수 대기 중</span>
-                        {selectedReportId === r.report_id ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-                      </div>
-                    </div>
-                  </div>
-
-                  <AnimatePresence>
-                    {selectedReportId === r.report_id && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="px-8 md:px-10 pb-8 md:pb-10 pt-0 overflow-hidden"
-                      >
-                        {reportLoading ? (
-                          <div className="py-12 flex justify-center">
-                            <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-                          </div>
-                        ) : reportDetail && (
-                          <div className="space-y-8 animate-in fade-in duration-500">
-                            <div className="border-t border-slate-100 pt-8">
-                              <h4 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-                                <Edit className="w-5 h-5 text-indigo-600" /> 리포트 내용 수정
-                              </h4>
-                              
-                              <div className="space-y-6">
-                                {Object.entries(reportDetail.content || {}).map(([key, value]) => {
-                                  if (key === '__meta' || typeof value !== 'string') return null;
-                                  return (
-                                    <div key={key} className="space-y-2">
-                                      <label className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">{key}</label>
-                                      <Textarea 
-                                        className="min-h-[150px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-colors"
-                                        value={value}
-                                        onChange={(e) => {
-                                          const newContent = { ...reportDetail.content, [key]: e.target.value };
-                                          setReportDetail({...reportDetail, content: newContent});
-                                        }}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            <div className="bg-indigo-50/50 rounded-3xl p-8 border border-indigo-100/50 space-y-4">
-                              <h4 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5 text-indigo-600" /> 멘토 피드백 (댓글)
-                              </h4>
-                              <Textarea 
-                                className="min-h-[120px] rounded-2xl border-indigo-200 bg-white shadow-sm focus:ring-indigo-500"
-                                placeholder="사용자에게 전달할 보완점이나 칭찬을 입력해주세요..."
-                                value={mentorComment}
-                                onChange={(e) => setMentorComment(e.target.value)}
-                              />
-                              <div className="flex justify-end pt-2">
-                                <Button 
-                                  className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 px-8 py-6 h-auto text-base font-bold shadow-lg shadow-indigo-200 transition-transform active:scale-95"
-                                  disabled={submittingReview}
-                                  onClick={submitReview}
-                                >
-                                  {submittingReview ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <FileCheck className="w-5 h-5 mr-2" />}
-                                  감수 완료 및 전송
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Card>
-              ))
-            )}
-          </div>
+          <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
+            <CardHeader className="px-10 pt-10">
+              <CardTitle className="flex items-center gap-2 text-2xl font-black">
+                <ClipboardList className="w-6 h-6" /> 멘토 리뷰 대기 목록
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {reports.length === 0 ? (
+                <div className="p-20 text-center text-slate-400 bg-slate-50/30 flex flex-col items-center justify-center">
+                  <FileText className="w-12 h-12 mb-4 opacity-20" />
+                  <p className="text-xl font-bold">현재 리뷰 대기 중인 리포트가 없습니다.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/80 text-left">
+                        <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">리포트 제목</th>
+                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">요청 유저</th>
+                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">생성일</th>
+                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">작업</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {reports.map((report) => (
+                        <tr key={report.report_id} className="hover:bg-indigo-50/30 transition-colors">
+                          <td className="px-10 py-6 font-bold text-slate-900 text-base">{report.title}</td>
+                          <td className="px-6 py-6 text-slate-500">{report.user_email}</td>
+                          <td className="px-6 py-6 text-slate-500 text-xs font-mono">
+                            {mounted ? new Date(report.created_at).toLocaleString("ko-KR") : ""}
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                            <Button
+                              className="bg-indigo-600 hover:bg-indigo-700 rounded-2xl px-6 py-5 font-bold shadow-md shadow-indigo-100 transition-all active:scale-95"
+                              onClick={() => router.push(`/admin/review/${report.report_id}`)}
+                            >
+                              리뷰하기
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
