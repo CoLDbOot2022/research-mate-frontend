@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   Sparkles,
   Wand2,
+  History,
+  Eye,
+  Zap,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -33,7 +36,7 @@ type ReportContent = Record<string, unknown>;
 type ReportResponse = {
   report_id: string;
   topic_id: string;
-  status: "generating" | "completed" | "failed" | "topic_generated";
+  status: "generating" | "completed" | "failed" | "topic_generated" | "awaiting_review";
   title: string;
   content: ReportContent | null;
   created_at: string;
@@ -42,6 +45,9 @@ type ReportResponse = {
   progress?: number | null;
   phase?: string | null;
   status_message?: string | null;
+  mentor_comment?: string | null;
+  original_content?: ReportContent | null;
+  mentor_reviewed_at?: string | null;
 };
 
 type ChatMessage = {
@@ -83,6 +89,7 @@ export default function ReportDetailPage() {
   const [generatingElapsedMs, setGeneratingElapsedMs] = useState(0);
   const [showProgressUI, setShowProgressUI] = useState(true);
   const [forceCompleteProgress, setForceCompleteProgress] = useState(false);
+  const [viewMode, setViewMode] = useState<"current" | "original">("current");
 
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -406,13 +413,34 @@ export default function ReportDetailPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight">보고서 상세</h1>
             <p className="text-sm text-slate-600 mt-1">상태: {report.status}</p>
+            {report.status === "awaiting_review" && (
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold mt-2 animate-pulse">
+                <ShieldCheck className="w-3 h-3" /> 전문가 감수 진행 중
+              </div>
+            )}
             {showProgressUI && displayProgressMeta?.phase && (
               <p className="text-xs text-indigo-700 mt-1">
                 실시간 단계: {displayProgressMeta.phase}
               </p>
             )}
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
+            {report.original_content && (
+              <div className="flex bg-slate-100 p-1 rounded-xl mr-2 no-print">
+                <button
+                  onClick={() => setViewMode("original")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${viewMode === 'original' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <History className="w-3.5 h-3.5" /> 원본
+                </button>
+                <button
+                  onClick={() => setViewMode("current")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${viewMode === 'current' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> 감수본
+                </button>
+              </div>
+            )}
             <Button variant="outline" onClick={() => router.push("/my-reports")}>목록</Button>
             <Button variant="outline" onClick={onToggleBookmark}>
               {report.is_bookmarked ? <BookmarkCheck className="w-4 h-4 mr-1" /> : <Bookmark className="w-4 h-4 mr-1" />}
@@ -420,9 +448,9 @@ export default function ReportDetailPage() {
             </Button>
             <Button
               variant="outline"
+              disabled={showProgressUI || report.status === "awaiting_review" || viewMode === "original"}
               onClick={() => {
                 if (editMode) {
-                  // Check for unsaved changes before exiting
                   const currentContent: Record<string, string> = { ...content };
                   const originalContent: Record<string, string> = {};
                   for (const section of sectionDefs) {
@@ -458,18 +486,17 @@ export default function ReportDetailPage() {
                     }
                   }
                 }
-              setEditMode((prev) => !prev);
-            }}
-            disabled={showProgressUI}
-          >
-            {editMode ? "보기 모드" : "편집 모드"}
-          </Button>
-          {editMode && (
-            <Button onClick={onSave} disabled={saving || showProgressUI} className="bg-slate-900 hover:bg-slate-950">
-              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}저장
+                setEditMode((prev) => !prev);
+              }}
+            >
+              {editMode ? "보기 모드" : "편집 모드"}
             </Button>
-          )}
-        </div>
+            {editMode && (
+              <Button onClick={onSave} disabled={saving || showProgressUI} className="bg-slate-900 hover:bg-slate-950">
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}저장
+              </Button>
+            )}
+          </div>
         </div>
 
 
@@ -501,6 +528,39 @@ export default function ReportDetailPage() {
               </div>
               <div className="h-1 bg-slate-100 no-print" />
 
+              {report.status === "awaiting_review" && (
+                <div className="bg-orange-50 border-b border-orange-100 p-4 text-center no-print">
+                  <p className="text-sm font-bold text-orange-800 flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> 현재 전문가가 리포트를 검토 및 보완하고 있습니다. 조금만 기다려주세요!
+                  </p>
+                </div>
+              )}
+
+              {report.mentor_comment && viewMode === "current" && (
+                <div className="bg-indigo-600 p-8 md:p-10 text-white relative overflow-hidden no-print">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
+                    <MessageSquareText className="w-32 h-32" />
+                  </div>
+                  <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start">
+                    <div className="bg-white/20 backdrop-blur rounded-2xl p-4 shrink-0 shadow-xl border border-white/30">
+                       <Zap className="w-8 h-8 text-amber-300 fill-amber-300" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                         <span className="text-xs font-black bg-white/20 px-3 py-1 rounded-full uppercase tracking-widest">Mentor's Feedback</span>
+                         {report.mentor_reviewed_at && (
+                           <span className="text-[10px] text-white/60">{new Date(report.mentor_reviewed_at).toLocaleDateString()}</span>
+                         )}
+                      </div>
+                      <h3 className="text-xl font-bold">전담 연구원의 감수평</h3>
+                      <p className="text-indigo-50/90 leading-relaxed text-base italic">
+                        "{report.mentor_comment}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div id="report-paper" className="print-area p-8 md:p-12 min-h-[760px] font-serif text-slate-800 bg-white relative overflow-hidden">
                 <div className="max-w-3xl mx-auto space-y-8">
                   <div className="text-center border-b pb-6 mb-8">
@@ -518,61 +578,66 @@ export default function ReportDetailPage() {
                         </div>
                       )}
                       <div className="space-y-8 text-sm md:text-[15px] leading-relaxed text-justify">
-                        {hasDynamicSections ? (
-                          sections.map((section, idx) => (
-                            <section key={`${section.heading}-${idx}`} className="space-y-3">
-                              <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
-                                {section.heading}
-                              </h3>
-                              {editMode ? (
-                                <textarea
-                                  className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
-                                  value={section.content}
-                                  onChange={(e) =>
-                                    setSections((prev) =>
-                                      prev.map((item, itemIdx) =>
-                                        itemIdx === idx ? { ...item, content: e.target.value } : item
+                        {(() => {
+                          const displayContent = viewMode === "original" ? report.original_content : report.content;
+                          const displaySections = displayContent?.sections as DynamicSection[] | undefined;
+                          
+                          if (displaySections && Array.isArray(displaySections) && displaySections.length > 0) {
+                            return displaySections.map((section, idx) => (
+                              <section key={`${section.heading}-${idx}`} className="space-y-3">
+                                <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                                  {section.heading}
+                                </h3>
+                                {editMode && viewMode === "current" ? (
+                                  <textarea
+                                    className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
+                                    value={section.content}
+                                    onChange={(e) =>
+                                      setSections((prev) =>
+                                        prev.map((item, itemIdx) =>
+                                          itemIdx === idx ? { ...item, content: e.target.value } : item
+                                        )
                                       )
-                                    )
-                                  }
-                                />
-                              ) : (
-                                <div className="text-slate-700 whitespace-pre-wrap">
-                                  <ReactMarkdown
-                                    remarkPlugins={[remarkMath]}
-                                    rehypePlugins={[rehypeKatex]}
-                                  >
-                                    {section.content || "내용이 없습니다."}
-                                  </ReactMarkdown>
-                                </div>
-                              )}
-                            </section>
-                          ))
-                        ) : (
-                          sectionDefs.map((section, idx) => (
-                            <section key={section.key}>
-                              <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
-                                {section.label}
-                              </h3>
-                              {editMode ? (
-                                <textarea
-                                  className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
-                                  value={content[section.key] ?? ""}
-                                  onChange={(e) => setContent((prev) => ({ ...prev, [section.key]: e.target.value }))}
-                                />
-                              ) : (
-                                <div className="text-slate-700 whitespace-pre-wrap">
-                                  <ReactMarkdown
-                                    remarkPlugins={[remarkMath]}
-                                    rehypePlugins={[rehypeKatex]}
-                                  >
-                                    {content[section.key] || "내용이 없습니다."}
-                                  </ReactMarkdown>
-                                </div>
-                              )}
-                            </section>
-                          ))
-                        )}
+                                    }
+                                  />
+                                ) : (
+                                  <div className="text-slate-700 whitespace-pre-wrap">
+                                    <ReactMarkdown
+                                      remarkPlugins={[remarkMath]}
+                                      rehypePlugins={[rehypeKatex]}
+                                    >
+                                      {section.content || "내용이 없습니다."}
+                                    </ReactMarkdown>
+                                  </div>
+                                )}
+                              </section>
+                            ));
+                          } else {
+                            return sectionDefs.map((section, idx) => (
+                              <section key={section.key}>
+                                <h3 className={`text-base md:text-lg font-bold border-l-4 pl-3 mb-3 ${idx % 2 === 0 ? "text-slate-800 border-slate-800" : "text-blue-700 border-blue-600"}`}>
+                                  {section.label}
+                                </h3>
+                                {editMode && viewMode === "current" ? (
+                                  <textarea
+                                    className="w-full min-h-40 border border-slate-200 rounded-lg p-4 bg-slate-50 font-sans text-sm"
+                                    value={content[section.key] ?? ""}
+                                    onChange={(e) => setContent((prev) => ({ ...prev, [section.key]: e.target.value }))}
+                                  />
+                                ) : (
+                                  <div className="text-slate-700 whitespace-pre-wrap">
+                                    <ReactMarkdown
+                                      remarkPlugins={[remarkMath]}
+                                      rehypePlugins={[rehypeKatex]}
+                                    >
+                                      {((displayContent as any)?.[section.key] as string) || "내용이 없습니다."}
+                                    </ReactMarkdown>
+                                  </div>
+                                )}
+                              </section>
+                            ));
+                          }
+                        })()}
                       </div>
                 </div>
               </div>
