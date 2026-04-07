@@ -39,6 +39,25 @@ export function ReportPremiumBanner({
         </div>
       )}
 
+      {/* Premium review confirmed by mentor, awaiting mentee accept */}
+      {reportType === "premium" && status === "review_confirmed" && (
+        <div className="rounded-2xl border-2 border-indigo-500 bg-gradient-to-br from-indigo-50 to-white p-6 flex items-start gap-4 shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-36 h-36 bg-indigo-100 rounded-full blur-3xl opacity-40 -mr-12 -mt-12 pointer-events-none" />
+          <div className="bg-indigo-600 p-3 rounded-xl flex-shrink-0 shadow-lg">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <div className="space-y-1 relative z-10 flex-1">
+            <h3 className="text-base font-bold text-indigo-900">
+              멘토의 리뷰가 도착했습니다!
+            </h3>
+            <p className="text-sm text-indigo-700 leading-relaxed mb-3">
+              멘토가 보고서 수정을 완료했습니다. 아래 탭에서 <span className="font-bold underline text-indigo-800">원본, 수정본, 그리고 변경사항(비교하기)</span>을 꼼꼼히 확인해주세요. 
+              수정 요청이 더 필요한 경우 채팅을 남겨주시고, 만족스러우시다면 <span className="font-bold text-indigo-800">'피드백 수락 및 확정'</span> 버튼을 눌러주세요.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Premium review completed */}
       {reportType === "premium" && status === "completed" && mentorReviewedAt && (
         <div className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 flex items-start gap-4 shadow-sm relative overflow-hidden">

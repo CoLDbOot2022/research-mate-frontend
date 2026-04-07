@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageCircle, Send, Check, History, Layout, FileText, Split } from "lucide-react";
 import "katex/dist/katex.min.css";
 import { flattenLists, markdownToHtml } from "@/lib/editor-utils";
 import { DualAIWorkflow } from "@/components/common/DualAIWorkflow";
@@ -13,14 +13,26 @@ import type { CommentData } from "@/components/editor/TipTapEditor";
 import { ReportHeader } from "@/components/report/ReportHeader";
 import { ReportPremiumBanner } from "@/components/report/ReportPremiumBanner";
 import { ReportEditorPanel } from "@/components/report/ReportEditorPanel";
+import { ReportDiffView } from "@/components/report/ReportDiffView";
+import { CommentSidebar } from "@/components/editor/CommentSidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ReportContent = Record<string, unknown>;
 
+type FeedbackMessage = {
+  id: number;
+  sender_type: "mentor" | "mentee";
+  content: string;
+  created_at: string;
+};
+
 type ReportResponse = {
   report_id: string;
-  status: "generating" | "completed" | "failed" | "awaiting_review";
+  status: "generating" | "completed" | "failed" | "awaiting_review" | "review_confirmed";
   title: string;
   content: ReportContent | null;
   created_at: string;
@@ -54,14 +66,30 @@ export default function ReportDetailPage() {
   // ── State ──────────────────────────────────────────────────────────────────
   const [report, setReport] = useState<ReportResponse | null>(null);
   const [editorHtml, setEditorHtml] = useState("");
+  const [originalHtml, setOriginalHtml] = useState("");
   const [comments, setComments] = useState<CommentData[]>([]);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState("mentor");
+  const [messages, setMessages] = useState<FeedbackMessage[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showProgressUI, setShowProgressUI] = useState(true);
   const [forceCompleteProgress, setForceCompleteProgress] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // ── Auto-scroll Chat ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   // ── Loading timer ──────────────────────────────────────────────────────────
   const [loadingElapsedMs, setLoadingElapsedMs] = useState(0);
@@ -87,10 +115,15 @@ export default function ReportDetailPage() {
 
     const fetchReport = async () => {
       try {
-        const res = await api.get<ReportResponse>(`/reports/${reportId}`);
+        const [res, msgs] = await Promise.all([
+            api.get<ReportResponse>(`/reports/${reportId}`),
+            api.get<FeedbackMessage[]>(`/reports/${reportId}/feedback`).catch(() => [])
+        ]);
+        
         if (!mounted) return;
 
         setReport(res);
+        setMessages(msgs);
 
         // ── Build editor HTML ───────────────────────────────────────────────
         let mergedHtml = "";
@@ -133,15 +166,54 @@ export default function ReportDetailPage() {
         if (mergedHtml) {
           mergedHtml = flattenLists(mergedHtml);
 
-          // Prepend title + metadata block if not already present
-          if (!mergedHtml.trim().startsWith("<h1")) {
-            const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
-            const metadataHtml = res.mentor_reviewed_at
-              ? `<p><span style="color:#94a3b8;font-size:0.875rem;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif">생성일: ${dateStr} | </span><span style="color:#059669;font-weight:600;font-size:0.75rem;background-color:#ecfdf5;padding:2px 8px;border-radius:9999px;border:1px solid #d1fae5;font-family:ui-sans-serif,system-ui,sans-serif">멘토 첨삭 완료</span></p>`
-              : `<p><span style="color:#94a3b8;font-size:0.875rem;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif">생성일: ${dateStr}</span></p>`;
-            mergedHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${mergedHtml}`;
+          // Strip existing metadata if present to avoid duplication
+          mergedHtml = mergedHtml.replace(/<p><span[^>]*>생성일:.*?<\/span><\/p>/g, "").trim();
+          mergedHtml = mergedHtml.replace(/<p>.*?생성일:.*?<\/p>/gi, "").trim();
+          mergedHtml = mergedHtml.replace(/<hr[^>]*>/i, "").trim();
+          mergedHtml = mergedHtml.replace(/^<h1>.*?<\/h1>/i, "").trim();
+
+          // Construct Integrated Notion-style Header
+          const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
+          let metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
+          if (res.mentor_reviewed_at) {
+              metadataHtml = `<p><span>생성일: ${dateStr} | </span><span style="color: #059669; font-weight: 600; font-size: 0.75rem; background-color: #ecfdf5; padding: 2px 8px; border-radius: 9999px; border: 1px solid #d1fae5;">멘토 첨삭 완료</span></p>`;
           }
+
+          mergedHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${mergedHtml}`;
           setEditorHtml(mergedHtml);
+        }
+
+        // ── Build original HTML ─────────────────────────────────────────────
+        const targetOriginal = res.original_content || res.content;
+        if (targetOriginal) {
+            let origHtml = "";
+            if (targetOriginal.html && typeof targetOriginal.html === "string") {
+                origHtml = targetOriginal.html;
+            } else {
+                // Fallback for legacy content
+                const rawSections = (targetOriginal as any).sections;
+                if (Array.isArray(rawSections)) {
+                    origHtml = markdownToHtml(rawSections.map((s: any) => `## ${s.heading}\n\n${s.content}`).join("\n\n"));
+                }
+            }
+            if (origHtml) {
+                origHtml = flattenLists(origHtml);
+                
+                // Strip existing metadata if present
+                origHtml = origHtml.replace(/<p><span[^>]*>생성일:.*?<\/span><\/p>/g, "").trim();
+                origHtml = origHtml.replace(/<p>.*?생성일:.*?<\/p>/gi, "").trim();
+                origHtml = origHtml.replace(/<hr[^>]*>/i, "").trim();
+                origHtml = origHtml.replace(/^<h1>.*?<\/h1>/i, "").trim();
+
+                const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
+                let metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
+                if (res.mentor_reviewed_at) {
+                    metadataHtml = `<p><span>생성일: ${dateStr} | </span><span style="color: #059669; font-weight: 600; font-size: 0.75rem; background-color: #ecfdf5; padding: 2px 8px; border-radius: 9999px; border: 1px solid #d1fae5;">멘토 첨삭 완료</span></p>`;
+                }
+
+                origHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${origHtml}`;
+                setOriginalHtml(origHtml);
+            }
         }
 
         setComments(parsedComments);
@@ -227,18 +299,19 @@ export default function ReportDetailPage() {
     if (!report) return;
     setSaving(true);
     try {
-      const temp = document.createElement("div");
-      temp.innerHTML = editorHtml || "";
-      const docTitle = temp.querySelector("h1")?.innerText?.trim() || "제목 없음";
-
       const updatedContent: ReportContent = {
         ...(report.content || {}),
         html: editorHtml,
         comments,
       };
 
+      // Extract title from <h1> in editorHtml
+      const temp = document.createElement("div");
+      temp.innerHTML = editorHtml || "";
+      const extractedTitle = temp.querySelector("h1")?.innerText?.trim() || report.title;
+
       const payload: { content: ReportContent; title?: string } = { content: updatedContent };
-      if (docTitle && docTitle !== report.title) payload.title = docTitle;
+      if (extractedTitle && extractedTitle !== report.title) payload.title = extractedTitle;
 
       const updated = await api.patch<ReportResponse>(`/reports/${report.report_id}`, payload);
       setReport(updated);
@@ -260,6 +333,61 @@ export default function ReportDetailPage() {
       setReport({ ...report, is_bookmarked: next });
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sendingMessage) return;
+    setSendingMessage(true);
+    try {
+      const msg = await api.post<FeedbackMessage>(`/reports/${reportId}/feedback`, {
+        content: newMessage,
+      });
+      setMessages((prev) => [...prev, msg]);
+      setNewMessage("");
+    } catch (e) {
+      console.error(e);
+      alert("메시지 전송에 실패했습니다.");
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const onAcceptReview = async () => {
+    if (!report || !confirm("멘토의 피드백을 수락하고 최종 보고서로 확정하시겠습니까?\n확정 후에는 원본 비교와 멘토 채팅 기능이 사라지며, 보고서를 직접 자유롭게 수정할 수 있게 됩니다.")) return;
+    setAccepting(true);
+    try {
+      await api.post(`/reports/${reportId}/accept-review`);
+      // Re-fetch report
+      const updated = await api.get<ReportResponse>(`/reports/${reportId}`);
+      setReport(updated);
+      setActiveTab("mentor");
+    } catch (e) {
+      console.error(e);
+      alert("수락 처리에 실패했습니다.");
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const onRejectReview = async () => {
+    if (!report || !confirm("멘토에게 수정 요청을 보내시겠습니까?")) return;
+    setRejecting(true);
+    try {
+      await api.post(`/reports/${reportId}/reject-review`);
+      // Re-fetch report and messages
+      const [updated, msgs] = await Promise.all([
+          api.get<ReportResponse>(`/reports/${reportId}`),
+          api.get<FeedbackMessage[]>(`/reports/${reportId}/feedback`)
+      ]);
+      setReport(updated);
+      setMessages(msgs);
+      alert("수정 요청이 전달되었습니다. 멘토가 다시 검토 후 안내해 드릴 예정입니다.");
+    } catch (e) {
+      console.error(e);
+      alert("수정 요청에 실패했습니다.");
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -333,18 +461,207 @@ export default function ReportDetailPage() {
             mentorComment={report.mentor_comment}
           />
 
-          <ReportEditorPanel
-            editorHtml={editorHtml}
-            editMode={editMode}
-            comments={comments}
-            activeCommentId={activeCommentId}
-            failed={report.status === "failed"}
-            failureInfo={failureInfo}
-            onChange={setEditorHtml}
-            onCommentClick={setActiveCommentId}
-          />
+          {report.status === "review_confirmed" || report.status === "awaiting_review" ? (
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
+              <div className="xl:col-span-3">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex items-center justify-between mb-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                    <TabsList className="bg-slate-100/50 p-1 gap-1 h-auto rounded-xl">
+                      <TabsTrigger value="original" className="rounded-lg py-2 px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-sm font-medium transition-all">
+                        <History className="w-4 h-4 mr-2" /> 원본
+                      </TabsTrigger>
+                      <TabsTrigger value="diff" className="rounded-lg py-2 px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-sm font-medium transition-all">
+                        <Split className="w-4 h-4 mr-2" /> 비교하기
+                      </TabsTrigger>
+                      <TabsTrigger value="mentor" className="rounded-lg py-2 px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-sm font-medium transition-all">
+                        <Layout className="w-4 h-4 mr-2" /> 멘토 수정본
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <div className="flex items-center gap-2">
+                        {report.status === "review_confirmed" && (
+                            <Button 
+                                variant="outline"
+                                className="border-indigo-200 text-indigo-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 font-bold rounded-xl px-4 transition-all"
+                                onClick={onRejectReview}
+                                disabled={rejecting || accepting}
+                            >
+                                {rejecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <History className="w-4 h-4 mr-2" />}
+                                수정 요청하기
+                            </Button>
+                        )}
+                        <Button 
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6"
+                            onClick={onAcceptReview}
+                            disabled={accepting || rejecting || report.status !== "review_confirmed"}
+                        >
+                            {accepting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                            {report.status === "review_confirmed" ? "피드백 수락 및 확정" : "멘토 검토 대기 중"}
+                        </Button>
+                    </div>
+                  </div>
+
+                  <TabsContent value="original" className="mt-0 focus-visible:outline-none">
+                    <ReportPaper 
+                      createdAt={report.created_at}
+                    >
+                        <ReportEditorPanel
+                          editorHtml={originalHtml}
+                          editMode={false}
+                          comments={[]} 
+                          activeCommentId={null}
+                          failed={false}
+                          onChange={() => {}}
+                          onCommentClick={() => {}}
+                          noWrapper={true} 
+                          showCommentControls={false}
+                        />
+                    </ReportPaper>
+                  </TabsContent>
+
+                  <TabsContent value="diff" className="mt-0 focus-visible:outline-none">
+                    <ReportPaper 
+                      createdAt={report.created_at}
+                    >
+                        <ReportDiffView oldHtml={originalHtml} newHtml={editorHtml} />
+                    </ReportPaper>
+                  </TabsContent>
+                  
+                  <TabsContent value="mentor" className="mt-0 focus-visible:outline-none">
+                    <div className="w-full">
+                        <ReportPaper 
+                          createdAt={report.created_at}
+                          showMentorBadge={Boolean(report.mentor_reviewed_at)}
+                        >
+                            <ReportEditorPanel
+                                editorHtml={editorHtml}
+                                editMode={false}
+                                comments={comments}
+                                activeCommentId={activeCommentId}
+                                failed={false}
+                                failureInfo={failureInfo}
+                                onChange={setEditorHtml}
+                                onCommentClick={setActiveCommentId}
+                                noWrapper={true} 
+                                showCommentControls={false}
+                            />
+                        </ReportPaper>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              <div className="xl:col-span-1 space-y-6 sticky top-24 h-[calc(100vh-120px)] flex flex-col min-h-0">
+                 {/* Mentor Comments (Global) */}
+                 <div className="bg-white rounded-3xl border border-slate-200/70 shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
+                    <div className="px-4 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-indigo-500" />
+                        <span className="font-bold text-slate-800">멘토 피드백</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2">
+                        <CommentSidebar
+                            comments={comments}
+                            activeCommentId={activeCommentId}
+                            onCommentClick={setActiveCommentId}
+                            editable={false}
+                        />
+                    </div>
+                 </div>
+
+                 {/* Mentor Chat (Global) - Fixed height for chat, more space for comments */}
+                 <div className="bg-white rounded-3xl border border-slate-200/70 shadow-sm overflow-hidden flex flex-col h-[400px] shrink-0">
+                    <div className="px-4 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                        <MessageCircle className="w-5 h-5 text-indigo-500" />
+                        <span className="font-bold text-slate-800">멘토와 대화</span>
+                    </div>
+                    
+                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
+                        {messages.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-3">
+                                <MessageCircle className="w-10 h-10 text-slate-200" />
+                                <p className="text-sm text-slate-400 font-medium text-balance">멘토에게 궁금한 점을 남겨보세요.</p>
+                            </div>
+                        ) : (
+                            messages.map((m) => (
+                                <div key={m.id} className={`flex flex-col ${m.sender_type === "mentee" ? "items-end" : "items-start"}`}>
+                                    <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm shadow-sm leading-relaxed ${
+                                        m.sender_type === "mentee"
+                                            ? "bg-indigo-600 text-white rounded-tr-none"
+                                            : "bg-slate-100 text-slate-700 rounded-tl-none"
+                                    }`}>
+                                        {m.content}
+                                    </div>
+                                    <span className="text-[10px] text-slate-400 mt-1.5 px-1 font-medium">
+                                        {new Date(m.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    <div className="p-4 border-t border-slate-100 bg-white">
+                        <div className="flex gap-2 bg-slate-100 rounded-2xl p-1.5 border border-slate-200/50">
+                            <Input 
+                                placeholder="메시지 입력..." 
+                                className="border-none bg-transparent focus-visible:ring-0 text-sm py-5 h-auto shadow-none"
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                            />
+                            <Button 
+                                size="icon" 
+                                className="rounded-xl h-[44px] w-[44px] bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 shadow-sm"
+                                onClick={handleSendMessage}
+                                disabled={sendingMessage || !newMessage.trim()}
+                            >
+                                <Send className="w-5 h-5" />
+                            </Button>
+                        </div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          ) : (
+            <ReportPaper 
+                createdAt={report.created_at}
+                showMentorBadge={report.status === "completed" && report.report_type === "premium"}
+            >
+                <ReportEditorPanel
+                  editorHtml={editorHtml}
+                  editMode={editMode && report.status === "completed"}
+                  comments={comments}
+                  activeCommentId={activeCommentId}
+                  failed={report.status === "failed"}
+                  failureInfo={failureInfo}
+                  onChange={setEditorHtml}
+                  onCommentClick={setActiveCommentId}
+                  noWrapper={true}
+                  showCommentControls={false}
+                />
+            </ReportPaper>
+          )}
         </div>
       </div>
     </div>
   );
+}
+
+// ─── Component: ReportPaper ──────────────────────────────────────────────────
+
+function ReportPaper({ 
+  children, 
+}: { 
+  children: React.ReactNode; 
+  createdAt?: string; 
+  showMentorBadge?: boolean;
+}) {
+    return (
+        <div id="report-paper-unified" className="w-full max-w-[850px] mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-100 min-h-[500px] transition-all duration-300">
+            <div className="prose prose-slate max-w-none focus:outline-none min-h-[500px] prose-h1:text-4xl prose-h1:font-black prose-h1:tracking-tight prose-h1:mb-2 prose-h2:text-2xl prose-p:leading-relaxed prose-headings:font-bold">
+                <div className="report-content-body">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
 }

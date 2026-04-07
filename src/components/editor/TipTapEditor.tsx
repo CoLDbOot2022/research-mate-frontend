@@ -1,11 +1,10 @@
 "use client";
 
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
 import { CommentMark } from './extensions/CommentMark';
 import { MathNode } from './extensions/MathNode';
-import { PaginationPlus } from 'tiptap-pagination-plus';
 import { useEffect, useState } from 'react';
 import { MessageSquarePlus, Bold, Italic, Heading1, Heading2 } from 'lucide-react';
 
@@ -23,6 +22,7 @@ interface TipTapEditorProps {
   onCommentCreated?: (comment: CommentData) => void;
   onCommentClick?: (commentId: string) => void;
   comments?: CommentData[];
+  showCommentControls?: boolean;
 }
 
 export function TipTapEditor({
@@ -32,8 +32,10 @@ export function TipTapEditor({
   onCommentCreated,
   onCommentClick,
   comments = [],
+  showCommentControls = true,
 }: TipTapEditorProps) {
   const [mounted, setMounted] = useState(false);
+  const [tick, setTick] = useState(0);
 
   const editor = useEditor({
     extensions: [
@@ -41,18 +43,6 @@ export function TipTapEditor({
       Highlight,
       MathNode,
       CommentMark,
-      PaginationPlus.configure({
-        // Standard A4 dimensions
-        pageWidth: 794,
-        pageHeight: 1123,
-        // Standard report margins (top/bottom: ~20mm, left/right: ~30mm)
-        marginTop: 80,
-        marginBottom: 80,
-        marginLeft: 113,
-        marginRight: 113,
-        footerLeft: "",
-        footerRight: "- {page} -", // Center formatting handled by CSS
-      }),
     ],
     content: initialContent,
     editable,
@@ -60,9 +50,11 @@ export function TipTapEditor({
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML());
     },
+    onSelectionUpdate: () => setTick(t => t + 1),
+    onTransaction: () => setTick(t => t + 1),
     editorProps: {
       attributes: {
-        class: 'prose prose-slate max-w-none font-sans focus:outline-none min-h-[500px] prose-p:text-[14.5px] prose-p:leading-[1.65] prose-p:my-2.5 prose-headings:font-normal prose-h1:text-[24pt] prose-h2:text-[18pt] prose-h3:text-[14pt] prose-headings:text-slate-900 prose-headings:mt-6 prose-headings:mb-3 prose-li:text-[14.5px] prose-ul:my-2 prose-ol:my-2',
+        class: 'prose prose-slate max-w-none focus:outline-none min-h-[500px] prose-h1:text-4xl prose-h1:font-black prose-h1:tracking-tight prose-h1:mb-2 prose-h2:text-2xl prose-p:leading-relaxed prose-headings:font-bold',
       },
       handleClick: (view, pos, event) => {
         if (!onCommentClick) return false;
@@ -94,47 +86,27 @@ export function TipTapEditor({
   }, [editor, editable]);
 
   useEffect(() => {
-    if (editor && initialContent && editor.getHTML() !== initialContent && !editor.isFocused) {
-      // Small workaround to prevent losing cursor position if editing
-      // Usually you don't overwrite content while typing, so we check focus
+    if (!editor || !initialContent) return;
+    
+    const currentHTML = editor.getHTML();
+    // Only update if content is fundamentally different and editor isn't focused
+    // or if the editor is completely empty but we have content
+    if (currentHTML !== initialContent && !editor.isFocused) {
       editor.commands.setContent(initialContent, { emitUpdate: false });
     }
   }, [initialContent, editor]);
-
-  // Update local variables for true A4 page lengths
-  useEffect(() => {
-    if (!editor) return;
-    const updateHeight = () => {
-      const dom = editor.view.dom as HTMLElement;
-      // Count how many dividers the plugin has inserted
-      const breaks = dom.querySelectorAll('.rm-page-break').length;
-      const pages = breaks + 1;
-      // Each A4 page is 1123px, each gap is 40px
-      const targetHeight = (pages * 1123) + (breaks * 40);
-      dom.style.minHeight = `${targetHeight}px`;
-    };
-
-    updateHeight();
-    
-    // Listen for DOM changes since text typing can cause the plugin to inject a new break
-    editor.on('transaction', updateHeight);
-    
-    // Also use a ResizeObserver as a fallback
-    const observer = new ResizeObserver(() => updateHeight());
-    observer.observe(editor.view.dom);
-
-    return () => {
-      editor.off('transaction', updateHeight);
-      observer.disconnect();
-    };
-  }, [editor]);
 
   if (!mounted || !editor) {
     return <div className="min-h-[300px] animate-pulse bg-slate-100 rounded-xl" />;
   }
 
   const handleAddComment = () => {
-    if (!editor.state.selection.empty && onCommentCreated) {
+    if (editor.state.selection.empty) {
+      alert("코멘트를 달 본문의 텍스트를 먼저 드래그하여 선택해 주세요.");
+      return;
+    }
+
+    if (onCommentCreated) {
       const { from, to } = editor.state.selection;
       const quote = editor.state.doc.textBetween(from, to, ' ');
       const text = prompt("코멘트를 입력하세요:");
@@ -184,18 +156,19 @@ export function TipTapEditor({
             <Heading2 className="w-4 h-4" />
           </button>
           <div className="w-px h-5 bg-slate-300 mx-1" />
-          <button
-            onClick={handleAddComment}
-            disabled={editor.state.selection.empty}
-            className="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-          >
-            <MessageSquarePlus className="w-3.5 h-3.5" />
-            코멘트 달기
-          </button>
+          {showCommentControls && (
+            <button
+              onClick={handleAddComment}
+              className="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors ml-auto"
+            >
+              <MessageSquarePlus className="w-3.5 h-3.5" />
+              코멘트 달기
+            </button>
+          )}
         </div>
       )}
       
-      <div className="flex-grow pt-4">
+      <div className="flex-grow">
         <EditorContent editor={editor} />
       </div>
     </div>

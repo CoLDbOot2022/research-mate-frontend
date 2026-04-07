@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ChevronLeft,
   Loader2,
   Save,
   ShieldCheck,
+  Send,
+  MessageCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,13 @@ import { CommentSidebar } from "@/components/editor/CommentSidebar";
 import { markdownToHtml, flattenLists } from "@/lib/editor-utils";
 import { v4 as uuidv4 } from "uuid";
 
+type FeedbackMessage = {
+  id: number;
+  sender_type: "mentor" | "mentee";
+  content: string;
+  created_at: string;
+};
+
 type ReportResponse = {
   report_id: string;
   status: string;
@@ -27,6 +36,7 @@ type ReportResponse = {
   report_type: string;
   created_at: string;
   mentor_reviewed_at: string | null;
+  mentor_comment: string | null;
 };
 
 const sectionDefs = [
@@ -51,8 +61,21 @@ export default function MentorReviewPage() {
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [mentorComment, setMentorComment] = useState(""); // General summary comment
   
+  const [messages, setMessages] = useState<FeedbackMessage[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [saveAction, setSaveAction] = useState<"draft" | "send" | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // ── Auto-scroll Chat ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (chatEndRef.current) {
+        chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -62,9 +85,16 @@ export default function MentorReviewPage() {
 
     const load = async () => {
       try {
-        const data = await api.get<ReportResponse>(`/reports/${reportId}`);
+        const [data, msgs] = await Promise.all([
+          api.get<ReportResponse>(`/admin/reports/${reportId}`),
+          api.get<FeedbackMessage[]>(`/admin/reports/${reportId}/feedback`)
+        ]);
+        
         setReport(data);
         setEditTitle(data.title);
+        setMessages(msgs);
+        
+        if (data.mentor_comment) setMentorComment(data.mentor_comment);
         
         let mergedHtml = "";
         let parsedComments: CommentData[] = [];
@@ -112,9 +142,10 @@ export default function MentorReviewPage() {
     load().catch(console.error);
   }, [reportId, router]);
 
-  const handleSubmit = async () => {
+  const handleSave = async (action: "draft" | "send") => {
     if (!report) return;
 
+    setSaveAction(action);
     setSubmitting(true);
     try {
       const updatedContent = { 
@@ -123,53 +154,59 @@ export default function MentorReviewPage() {
         comments: comments,
       };
 
-      await api.post(`/admin/reports/${reportId}/review`, {
+      // Extract title from <h1> in editorHtml
+      const temp = document.createElement("div");
+      temp.innerHTML = editorHtml || "";
+      const extractedTitle = temp.querySelector("h1")?.innerText?.trim() || report.title;
+
+      const endpoint = action === "draft" 
+        ? `/admin/reports/${reportId}/save-draft` 
+        : `/admin/reports/${reportId}/send-to-mentee`;
+
+      await api.post(endpoint, {
         content: updatedContent,
-        mentor_comment: mentorComment || "멘토 리뷰가 완료되었습니다.",
+        mentor_comment: mentorComment || "멘토 리뷰가 진행 중입니다.",
       });
       
-      if (editTitle !== report.title) {
+      if (extractedTitle && extractedTitle !== report.title) {
         await api.patch(`/reports/${reportId}`, {
           content: updatedContent,
-          title: editTitle
+          title: extractedTitle
         });
       }
 
-      alert("리뷰가 성공적으로 제출되었습니다.");
-      router.push("/admin");
+      alert(action === "draft" ? "임시 저장되었습니다." : "멘티에게 피드백을 전송했습니다.");
+      if (action === "send") router.push("/admin");
+      else {
+          // Refresh report info
+          const updated = await api.get<ReportResponse>(`/admin/reports/${reportId}`);
+          setReport(updated);
+      }
     } catch (e) {
       console.error(e);
-      alert("리뷰 제출에 실패했습니다.");
+      alert("작업에 실패했습니다.");
     } finally {
       setSubmitting(false);
+      setSaveAction(null);
     }
   };
 
-  const handleCommentAdd = (quote: string, range: { from: number, to: number }) => {
-    const text = prompt("코멘트를 입력하세요:");
-    if (!text) return;
-
-    const id = uuidv4();
-    const newComment: CommentData = {
-      id,
-      text,
-      quote,
-      createdAt: Date.now(),
-    };
-
-    setComments(prev => [...prev, newComment]);
-    
-    // We also need to tell the editor to set the mark!
-    // But how do we access editor.chain().setComment(id)?
-    // The cleanest way is to dispatch a custom event or let TipTapEditor handle the Mark internally,
-    // actually, if we pass a callback that receives the id, but TipTapEditor calls onCommentAdd AFTER getting the text.
-    // Let's modify TipTapEditor to accept a ref or a command to add mark, or we just rely on `document.execCommand`? No.
-    // Wait! TipTapEditor is doing the command. Let's fix TipTapEditor so it asks for the text and sets the mark natively!
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sendingMessage) return;
+    setSendingMessage(true);
+    try {
+      const msg = await api.post<FeedbackMessage>(`/admin/reports/${reportId}/feedback`, {
+        content: newMessage
+      });
+      setMessages(prev => [...prev, msg]);
+      setNewMessage("");
+    } catch (e) {
+      console.error(e);
+      alert("메시지 전송에 실패했습니다.");
+    } finally {
+      setSendingMessage(false);
+    }
   };
-
-  // Temporarily pass an event listener or handle this via window event.
-  // Actually, let's fix TipTapEditor in a moment to handle the prompt and mark internally,
-  // then it fires `onCommentAdd({ id, text, quote })` to the parent so parent can just save it.
 
   if (loading) {
     return (
@@ -201,19 +238,15 @@ export default function MentorReviewPage() {
           <div className="lg:col-span-3 space-y-6">
             <div className="relative w-full print:static print:block print:overflow-visible">
               <div id="report-paper" className="print-area w-full max-w-[850px] mx-auto transition-all">
-                <div className="max-w-[850px] mx-auto">
-                {/* 
-                  Instead of passing handleCommentAdd, we'll let TipTapEditor ask for the text, 
-                  generate the ID, apply the mark, and then inform us so we just save it to state.
-                */}
-                <TipTapEditor
-                  initialContent={editorHtml}
-                  editable={true}
-                  onChange={(html) => setEditorHtml(html)}
-                  onCommentCreated={(comment) => setComments(prev => [...prev, comment])}
-                  onCommentClick={(id) => setActiveCommentId(id)}
-                  comments={comments}
-                />
+                 <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                 <TipTapEditor
+                   initialContent={editorHtml}
+                   editable={report.status !== "completed"}
+                   onChange={(html) => setEditorHtml(html)}
+                   onCommentCreated={(comment) => setComments(prev => [...prev, comment])}
+                   onCommentClick={(id) => setActiveCommentId(id)}
+                   comments={comments}
+                 />
                 </div>
               </div>
             </div>
@@ -239,7 +272,7 @@ export default function MentorReviewPage() {
                     // To do that easily, we can emit an event or recreate editor HTML,
                     // but for now deleting the comment removes it from sidebar.
                   }}
-                  editable={true}
+                  editable={report.status !== "completed"}
                 />
 
                 <div className="pt-4 border-t border-slate-100 space-y-4">
@@ -250,14 +283,74 @@ export default function MentorReviewPage() {
                     value={mentorComment}
                     onChange={(e) => setMentorComment(e.target.value)}
                   />
-                  <Button
-                    className="w-full bg-slate-900 hover:bg-slate-950 text-white rounded-xl py-6 h-auto font-bold shadow-lg"
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                  >
-                    {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-                    피드백 완료 (저장)
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                        variant="outline"
+                        className="w-full border-slate-200 text-slate-700 rounded-xl py-5 h-auto font-semibold"
+                        onClick={() => handleSave("draft")}
+                        disabled={submitting}
+                    >
+                        {submitting && saveAction === "draft" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        임시 저장
+                    </Button>
+                    <Button
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-5 h-auto font-bold shadow-md"
+                        onClick={() => handleSave("send")}
+                        disabled={submitting}
+                    >
+                        {submitting && saveAction === "send" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                        피드백 전송 (멘티 확인 요청)
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-100 flex flex-col gap-4">
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                    <MessageCircle className="w-4 h-4 text-indigo-500" />
+                    멘티와 대화하기
+                  </div>
+                  
+                  <div ref={chatEndRef} className="bg-slate-50/80 rounded-xl p-3 max-h-[300px] overflow-y-auto space-y-3 border border-slate-100 scroll-smooth">
+                        {messages.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-3">
+                                <MessageCircle className="w-10 h-10 text-slate-200" />
+                                <p className="text-sm text-slate-400 font-medium">멘토에게 수정 요청이나 궁금한 점을 남겨보세요.</p>
+                            </div>
+                        ) : (
+                            messages.map((m) => (
+                                <div key={m.id} className={`flex flex-col ${m.sender_type === "mentor" ? "items-end" : "items-start"}`}>
+                                    <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-xs shadow-sm leading-relaxed ${
+                                        m.sender_type === "mentor"
+                                            ? "bg-indigo-600 text-white rounded-tr-none"
+                                            : "bg-white text-slate-700 border border-slate-200 rounded-tl-none"
+                                    }`}>
+                                        {m.content}
+                                    </div>
+                                    <span className="text-[10px] text-slate-400 mt-1.5 px-1 font-medium">
+                                        {new Date(m.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="메시지 입력..." 
+                      className="text-xs rounded-lg py-4 border-slate-200"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    />
+                    <Button 
+                      size="icon" 
+                      className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                      onClick={handleSendMessage}
+                      disabled={sendingMessage || !newMessage.trim()}
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

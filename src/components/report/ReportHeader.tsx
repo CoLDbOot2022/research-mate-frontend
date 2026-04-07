@@ -108,29 +108,18 @@ export function ReportHeader({
           PDF
         </Button>
 
-        <Button
-          variant={editMode ? "outline" : "default"}
-          size="sm"
-          onClick={onToggleEdit}
-          disabled={disabled}
-          className={`rounded-full px-4 transition-all ${
-            editMode
-              ? "border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-              : "bg-slate-900 hover:bg-slate-800 text-white"
-          }`}
-        >
-          {editMode ? (
-            <>
-              <Eye className="w-3.5 h-3.5 mr-1.5" />
-              보기 모드
-            </>
-          ) : (
-            <>
-              <Pencil className="w-3.5 h-3.5 mr-1.5" />
-              수정 모드
-            </>
-          )}
-        </Button>
+        {!editMode && status !== "awaiting_review" && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onToggleEdit}
+            disabled={disabled}
+            className="rounded-full px-4 bg-slate-900 hover:bg-slate-800 text-white transition-all"
+          >
+            <Pencil className="w-3.5 h-3.5 mr-1.5" />
+            수정 모드
+          </Button>
+        )}
 
         {editMode && (
           <Button

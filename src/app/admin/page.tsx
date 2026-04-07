@@ -15,7 +15,6 @@ import {
   ChevronUp, 
   FileText, 
   FileCheck, 
-  Edit,
   ClipboardList 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -71,11 +70,6 @@ type AdjustResponse = {
   package_code: string;
   new_balance: number;
   delta: number;
-};
-
-const PACKAGE_LABELS: Record<string, string> = {
-  basic: "일반 리포트",
-  "premium-review": "프리미엄 리포트",
 };
 
 export default function AdminPage() {
@@ -255,70 +249,72 @@ export default function AdminPage() {
         </div>
 
         {activeTab === "users" ? (
-          <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
-            <CardHeader className="px-10 pt-10">
-              <CardTitle className="flex items-center gap-2 text-2xl font-black"><Users className="w-6 h-6" /> 가입 유저 목록</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50 text-left">
-                      <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">사용자</th>
-                      <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">가입일</th>
-                      <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">일반 리포트</th>
-                      <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">프리미엄 리포트</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-indigo-50/30 transition-colors">
-                        <td className="px-10 py-6">
-                           <div className="flex flex-col">
-                             <span className="font-bold text-slate-900 text-base">{user.name || "미지정"}</span>
-                             <span className="text-slate-500 text-xs">{user.email}</span>
-                           </div>
-                        </td>
-                        <td className="px-6 py-6 text-slate-500 text-xs font-mono">
-                          {mounted && user.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "—"}
-                        </td>
-                        {(["basic", "premium-review"] as const).map((code) => {
-                          const balance = getPackageBalance(user, code);
-                          return (
-                            <td key={code} className="px-6 py-6">
-                              <div className="flex items-center justify-center gap-3">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8 rounded-xl border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
-                                  disabled={adjustingKey !== "" || balance <= 0}
-                                  onClick={() => adjustCredit(user.id, code, -1)}
-                                >
-                                  <Minus className="w-3.5 h-3.5" />
-                                </Button>
-                                <span className={`min-w-[2.5rem] text-center font-black text-lg ${balance > 0 ? "text-slate-900" : "text-slate-300"}`}>
-                                  {balance}
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8 rounded-xl border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all"
-                                  disabled={adjustingKey !== ""}
-                                  onClick={() => adjustCredit(user.id, code, 1)}
-                                >
-                                  <Plus className="w-3.5 h-3.5" />
-                                </Button>
-                              </div>
-                            </td>
-                          );
-                        })}
+          <section id="users-section">
+            <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
+              <CardHeader className="px-10 pt-10">
+                <CardTitle className="flex items-center gap-2 text-2xl font-black"><Users className="w-6 h-6" /> 가입 유저 목록</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/50 text-left">
+                        <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">사용자</th>
+                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">가입일</th>
+                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">일반 리포트</th>
+                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">프리미엄 리포트</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {users.map((user) => (
+                        <tr key={user.id} className="hover:bg-indigo-50/30 transition-colors">
+                          <td className="px-10 py-6">
+                             <div className="flex flex-col">
+                               <span className="font-bold text-slate-900 text-base">{user.name || "미지정"}</span>
+                               <span className="text-slate-500 text-xs">{user.email}</span>
+                             </div>
+                          </td>
+                          <td className="px-6 py-6 text-slate-500 text-xs font-mono">
+                            {mounted && user.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "—"}
+                          </td>
+                          {(["basic", "premium-review"] as const).map((code) => {
+                            const balance = getPackageBalance(user, code);
+                            return (
+                              <td key={code} className="px-6 py-6">
+                                <div className="flex items-center justify-center gap-3">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-xl border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
+                                    disabled={adjustingKey !== "" || balance <= 0}
+                                    onClick={() => adjustCredit(user.id, code, -1)}
+                                  >
+                                    <Minus className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <span className={`min-w-[2.5rem] text-center font-black text-lg ${balance > 0 ? "text-slate-900" : "text-slate-300"}`}>
+                                    {balance}
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-xl border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all"
+                                    disabled={adjustingKey !== ""}
+                                    onClick={() => adjustCredit(user.id, code, 1)}
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
         ) : activeTab === "inquiries" ? (
           <div className="space-y-6">
              {inquiries.length === 0 ? (
@@ -442,53 +438,65 @@ export default function AdminPage() {
              )}
           </div>
         ) : (
-          <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
-            <CardHeader className="px-10 pt-10">
-              <CardTitle className="flex items-center gap-2 text-2xl font-black">
-                <ClipboardList className="w-6 h-6" /> 멘토 리뷰 대기 목록
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {reports.length === 0 ? (
-                <div className="p-20 text-center text-slate-400 bg-slate-50/30 flex flex-col items-center justify-center">
-                  <FileText className="w-12 h-12 mb-4 opacity-20" />
-                  <p className="text-xl font-bold">현재 리뷰 대기 중인 리포트가 없습니다.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/80 text-left">
-                        <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">리포트 제목</th>
-                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">요청 유저</th>
-                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">생성일</th>
-                        <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">작업</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {reports.map((report) => (
-                        <tr key={report.report_id} className="hover:bg-indigo-50/30 transition-colors">
-                          <td className="px-10 py-6 font-bold text-slate-900 text-base">{report.title}</td>
-                          <td className="px-6 py-6 text-slate-500">{report.user_email}</td>
-                          <td className="px-6 py-6 text-slate-500 text-xs font-mono">
-                            {mounted ? new Date(report.created_at).toLocaleString("ko-KR") : ""}
-                          </td>
-                          <td className="px-6 py-6 text-center">
-                            <Button
-                              className="bg-indigo-600 hover:bg-indigo-700 rounded-2xl px-6 py-5 font-bold shadow-md shadow-indigo-100 transition-all active:scale-95"
-                              onClick={() => router.push(`/admin/review/${report.report_id}`)}
-                            >
-                              리뷰하기
-                            </Button>
-                          </td>
+          <section id="reports-section">
+            <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
+              <CardHeader className="px-10 pt-10">
+                <CardTitle className="flex items-center gap-2 text-2xl font-black">
+                  <ClipboardList className="w-6 h-6" /> 멘토 리뷰 관리
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {reports.length === 0 ? (
+                  <div className="p-20 text-center text-slate-400 bg-slate-50/30 flex flex-col items-center justify-center">
+                    <FileText className="w-12 h-12 mb-4 opacity-20" />
+                    <p className="text-xl font-bold">현재 리뷰 대기 중인 리포트가 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/80 text-left">
+                          <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">리포트 제목</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">요청 유저</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">생성일</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">상태</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">작업</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {reports.map((report) => (
+                          <tr key={report.report_id} className="hover:bg-indigo-50/30 transition-colors">
+                            <td className="px-10 py-6 font-bold text-slate-900 text-base">{report.title}</td>
+                            <td className="px-6 py-6 text-slate-500">{report.user_email}</td>
+                            <td className="px-6 py-6 text-slate-500 text-xs font-mono">
+                              {mounted ? new Date(report.created_at).toLocaleString("ko-KR") : ""}
+                            </td>
+                            <td className="px-6 py-6 text-center whitespace-nowrap">
+                               {report.status === "awaiting_review" ? (
+                                 <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">검수 대기</span>
+                               ) : report.status === "review_confirmed" ? (
+                                 <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">멘티 확인 중</span>
+                               ) : (
+                                 <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">완료</span>
+                               )}
+                             </td>
+                            <td className="px-6 py-6 text-center">
+                              <Button
+                                 className={`${report.status === 'awaiting_review' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-slate-500 hover:bg-slate-600'} rounded-2xl px-6 py-5 font-bold shadow-md transition-all active:scale-95`}
+                                 onClick={() => router.push(`/admin/review/${report.report_id}`)}
+                               >
+                                 {report.status === "awaiting_review" ? "리뷰하기" : "보기"}
+                               </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
         )}
       </div>
     </div>
