@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 type PaymentPackage = {
   code: string;
@@ -90,6 +91,7 @@ export default function CreditsPage() {
       router.replace("/login");
       return;
     }
+    track.creditsPageViewed();
 
     const load = async () => {
       try {
@@ -142,6 +144,11 @@ export default function CreditsPage() {
       setMessage("");
       setMessageTone("success");
       setShowSuccessModal(true);
+      track.creditPurchaseCompleted({
+        package_code: packageCode,
+        amount: result.amount,
+        credits_added: result.credits_added,
+      });
     } catch (error) {
       setMessageTone("neutral");
       setMessage(typeof error === "string" ? error : "이용권 지급에 실패했습니다.");
@@ -287,7 +294,11 @@ export default function CreditsPage() {
                       ? "bg-slate-900 hover:bg-slate-800 text-white" 
                       : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200"
                   }`}
-                  onClick={() => claimPromotion(plan.code)}
+                  onClick={() => {
+                    const planAmount = summary?.packages.find(p => p.code === plan.code)?.amount ?? plan.amount;
+                    track.creditPurchaseInitiated({ package_code: plan.code, amount: planAmount });
+                    claimPromotion(plan.code);
+                  }}
                   disabled={loading || claimingCode === plan.code}
                 >
                   {claimingCode === plan.code ? (

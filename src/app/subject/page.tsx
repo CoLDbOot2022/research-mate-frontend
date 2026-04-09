@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 type UnitMedium = {
   unit_medium: string;
@@ -121,6 +122,13 @@ export default function SubjectPage() {
       return;
     }
     setLoading(true);
+    track.topicFormSubmitted({
+      subject,
+      unit_large: large === NONE_VALUE ? "" : large,
+      difficulty,
+      report_type: reportType,
+      has_career: career.trim().length > 0,
+    });
     const query = new URLSearchParams({
       subject,
       unit_large: large === NONE_VALUE ? "" : large,
@@ -164,7 +172,10 @@ export default function SubjectPage() {
                       type="button"
                       variant={subject === s ? "default" : "outline"}
                       className={subject === s ? "bg-slate-900 hover:bg-slate-950" : "bg-white"}
-                      onClick={() => setSubject(s)}
+                    onClick={() => {
+                        setSubject(s);
+                        track.subjectSelected(s);
+                      }}
                     >
                       {s}
                     </Button>
@@ -181,6 +192,7 @@ export default function SubjectPage() {
                       setLarge(v);
                       setMedium(NONE_VALUE);
                       setSmall(NONE_VALUE);
+                      if (v !== NONE_VALUE) track.unitSelected('large', v);
                     }}
                   >
                     <SelectTrigger><SelectValue placeholder="대단원 선택" /></SelectTrigger>
@@ -201,6 +213,7 @@ export default function SubjectPage() {
                   onValueChange={(v) => {
                     setMedium(v);
                     setSmall(NONE_VALUE);
+                    if (v !== NONE_VALUE) track.unitSelected('medium', v);
                   }}
                 >
                   <SelectTrigger><SelectValue placeholder="중단원 선택" /></SelectTrigger>
@@ -215,7 +228,7 @@ export default function SubjectPage() {
 
               <div className="space-y-2">
                 <Label>소단원 (선택)</Label>
-                <Select value={small} onValueChange={setSmall}>
+                <Select value={small} onValueChange={(v) => { setSmall(v); if (v !== NONE_VALUE) track.unitSelected('small', v); }}>
                   <SelectTrigger><SelectValue placeholder="소단원 선택" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE_VALUE}>선택 안함</SelectItem>
@@ -238,7 +251,12 @@ export default function SubjectPage() {
                         key={type.value}
                         type="button"
                         disabled={hasNoCredits}
-                        onClick={() => !hasNoCredits && setReportType(type.value)}
+                        onClick={() => {
+                          if (!hasNoCredits) {
+                            setReportType(type.value);
+                            track.reportTypeSelected(type.value);
+                          }
+                        }}
                         className={`rounded-2xl border px-4 py-3 text-left transition ${
                           hasNoCredits
                             ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
@@ -304,7 +322,10 @@ export default function SubjectPage() {
                       variant={difficulty === item.value ? "default" : "outline"}
                       className={`h-auto py-3 flex flex-col gap-1 rounded-2xl border-slate-200 ${difficulty === item.value ? "bg-slate-900 text-white hover:bg-slate-800" : "bg-white hover:bg-slate-50"
                         }`}
-                      onClick={() => setDifficulty(item.value)}
+                    onClick={() => {
+                      setDifficulty(item.value);
+                      track.difficultySelected(item.label);
+                    }}
                     >
                       <span className="font-bold">{item.label}</span>
                       <span className={`text-[10px] ${difficulty === item.value ? "text-slate-300" : "text-slate-500"}`}>
