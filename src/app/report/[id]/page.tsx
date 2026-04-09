@@ -456,7 +456,7 @@ export default function ReportDetailPage() {
           isBookmarked={report.is_bookmarked}
           editMode={editMode}
           saving={saving}
-          disabled={showProgressUI || report.status === "generating"}
+          disabled={showProgressUI}
           onBack={() => router.push("/my-reports")}
           onToggleBookmark={onToggleBookmark}
           onDownloadPdf={() => window.print()}
