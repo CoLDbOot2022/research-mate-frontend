@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PhaseProgress } from "@/components/common/PhaseProgress";
 import { getAccessToken } from "@/lib/auth";
 import { api } from "@/lib/api/client";
+import { track } from "@/lib/analytics";
 
 type Topic = {
   topic_id: string;
@@ -66,6 +67,13 @@ function TopicConfirmContent() {
       const res = await api.post<Topic[]>("/topics/recommend", body);
       const selected = res[0] ?? null;
       setTopic(selected);
+      if (selected) {
+        track.topicRecommended({
+          topic_title: selected.title,
+          difficulty: selected.difficulty,
+          tags: selected.tags,
+        });
+      }
     } catch (e) {
       console.error(e);
       setTopic(null);
@@ -91,6 +99,7 @@ function TopicConfirmContent() {
         report_id: topic.report_id,
         report_type: reportType,
       });
+      track.reportGenerationStarted({ topic_title: topic.title, report_type: reportType });
       // Redirect back to report detail page to watch progress
       router.push(`/report/${res.report_id}`);
     } catch (e) {

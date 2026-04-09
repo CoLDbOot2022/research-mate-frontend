@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 type ReportItem = {
   report_id: string;
@@ -32,6 +33,7 @@ export default function MyReportsPage() {
     try {
       const res = await api.get<ReportItem[]>("/reports");
       setReports(res);
+      if (showLoading) track.myReportsViewed(res.length);
     } catch (e) {
       console.error(e);
       // Only redirect on initial load failure or 401

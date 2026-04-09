@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/common/Header";
 import { InquiryFAB } from "@/components/common/InquiryFAB";
 import { MindMapProvider } from "@/context/MindMapContext";
+import { AmplitudeInitializer } from "@/components/common/AmplitudeInitializer";
 
 export const metadata: Metadata = {
   title: "세특연구소 | 고등학생 심화 탐구 주제 추천",
@@ -20,6 +21,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css" />
       </head>
       <body className="min-h-screen bg-white">
+        <AmplitudeInitializer />
         <MindMapProvider>
           <Header />
           <main>{children}</main>
