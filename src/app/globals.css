@@ -1,7 +1,42 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
+
+/* Center the TipTap PaginationPlus footer (page numbers) */
+.rm-with-pagination .rm-page-footer {
+  position: relative !important;
+  justify-content: center !important;
+}
+.rm-with-pagination .rm-page-footer-left {
+  display: none !important;
+}
+.rm-with-pagination .rm-page-footer-right {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  text-align: center !important;
+  width: 100% !important;
+  color: #94a3b8 !important; /* slate-400 */
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+/* The .rm-page-break styles were relocated to inline <style> blocks in TipTapEditor wrapper */
+
+.rm-pagination-gap {
+  background-color: #f8fafc !important;
+  border-left-color: #f8fafc !important;
+  border-right-color: #f8fafc !important;
+}
+
+
+
+.rm-with-pagination {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
+}
 
 :root {
   /* Hex equivalents for standard slate/blue palette to fix html2canvas compatibility */
@@ -141,8 +176,13 @@ body {
 /* Print Styles */
 @media print {
   @page {
-    margin: 2.5cm;
+    margin: 0 !important; /* Rely entirely on TipTap's internal margins */
     size: A4;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Reset layout for print - STRIP ALL INTERFERING STYLES */
@@ -169,6 +209,25 @@ body {
     margin: 0 !important;
     padding: 0 !important;
     visibility: hidden !important;
+  }
+
+  /* Reset layout for print */
+  .rm-with-pagination {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    min-height: 0 !important;
+  }
+
+  /* Transform the gap into an actual physical page break */
+  .rm-pagination-gap {
+    height: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   /* Reset main and all wrapper containers */
@@ -222,18 +281,9 @@ body {
     display: inline-block !important;
   }
 
-  /* Page break rules */
+  /* Keep internal sections from breaking awkwardly if possible */
   h2, h3 {
     break-after: avoid;
     page-break-after: avoid;
-    margin-top: 1cm !important;
-  }
-  
-  section {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-top: 1.5cm !important;
-    margin-bottom: 1.5cm !important;
-    display: block !important;
   }
 }

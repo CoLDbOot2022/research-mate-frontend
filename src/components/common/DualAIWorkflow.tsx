@@ -121,15 +121,15 @@ export function DualAIWorkflow({
           {subtitle && <p className="text-sm text-slate-500 mt-2 font-medium">{subtitle}</p>}
         </div>
         <div className="inline-flex flex-col items-end gap-2">
-          <div className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-wider animate-pulse">
+          <div className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full bg-slate-50 text-slate-700 border border-slate-100 uppercase tracking-wider animate-pulse">
             <Loader2 className="w-4 h-4 animate-spin" /> Processing
           </div>
         </div>
       </div>
       
       {/* Safe to leave banner */}
-      <div className="mb-8 p-4 rounded-xl bg-blue-50/50 border border-blue-100 flex items-start gap-3">
-        <div className="bg-blue-100 p-1.5 rounded-full text-blue-600 shrink-0 mt-0.5">
+      <div className="mb-8 p-4 rounded-xl bg-slate-50/50 border border-slate-100 flex items-start gap-3">
+        <div className="bg-slate-100 p-1.5 rounded-full text-slate-600 shrink-0 mt-0.5">
           <CheckCircle2 className="w-4 h-4" />
         </div>
         <div>
@@ -274,11 +274,11 @@ export function DualAIWorkflow({
 
                 <div className="flex-1 pt-0.5">
                   <div className="flex items-center justify-between">
-                    <h4 className={`text-sm font-bold flex items-center gap-2 ${reviewerCurrentPhase === "critique" ? "text-emerald-900" : reviewerCurrentPhase === "rewrite" ? "text-violet-900" : reviewerCurrentPhase === "finalize" || reviewerCurrentPhase === "completed" || safeProgress === 100 ? "text-blue-900" : "text-slate-600"}`}>
+                    <h4 className={`text-sm font-bold flex items-center gap-2 ${reviewerCurrentPhase === "critique" ? "text-slate-900" : reviewerCurrentPhase === "rewrite" ? "text-slate-900" : reviewerCurrentPhase === "finalize" || reviewerCurrentPhase === "completed" || safeProgress === 100 ? "text-slate-900" : "text-slate-600"}`}>
                       {reviewerTitle || "Reviewer AI"}
                     </h4>
                   </div>
-                  {reviewerSubtitle && <p className={`text-[10px] mt-0.5 ${reviewerCurrentPhase === "critique" ? "text-emerald-700/70" : reviewerCurrentPhase === "rewrite" ? "text-violet-700/70" : "text-slate-500"}`}>{reviewerSubtitle}</p>}
+                  {reviewerSubtitle && <p className={`text-[10px] mt-0.5 ${reviewerCurrentPhase === "critique" ? "text-slate-700/70" : reviewerCurrentPhase === "rewrite" ? "text-slate-700/70" : "text-slate-500"}`}>{reviewerSubtitle}</p>}
                 </div>
               </div>
               
@@ -294,12 +294,12 @@ export function DualAIWorkflow({
                       </div>
                     </div>
                     <div className="mb-2">
-                       <span className="font-black text-emerald-700 text-sm tracking-widest uppercase flex items-center justify-center gap-1.5">
+                       <span className="font-black text-slate-700 text-sm tracking-widest uppercase flex items-center justify-center gap-1.5">
                          <Sparkles className="w-3.5 h-3.5" />
                          {reviewerRealTimeMessage?.match(/\[(\d+차)\]/)?.[1] ? `${reviewerRealTimeMessage.match(/\[(\d+차)\]/)?.[1]} Evaluating` : "Evaluating"}
                        </span>
                     </div>
-                    <p className="text-xs text-emerald-800/80 max-w-[220px] leading-relaxed mx-auto font-medium">
+                    <p className="text-xs text-slate-800/80 max-w-[220px] leading-relaxed mx-auto font-medium">
                        {reviewerRealTimeMessage || "작성된 보고서의 품질을 엄격한 루브릭으로 다각도 분석 중입니다..."}
                     </p>
                   </div>
@@ -312,11 +312,11 @@ export function DualAIWorkflow({
                       </div>
                     </div>
                     <div className="mb-2">
-                       <span className="font-black text-violet-700 text-sm tracking-widest uppercase">
+                       <span className="font-black text-slate-700 text-sm tracking-widest uppercase">
                          Enhancing Quality
                        </span>
                     </div>
-                    <p className="text-xs text-violet-800/80 max-w-[240px] leading-relaxed mx-auto font-medium">
+                    <p className="text-xs text-slate-800/80 max-w-[240px] leading-relaxed mx-auto font-medium">
                        보고서의 학술적 깊이를 더하기 위해 추가 피드백을 전달했습니다. 보다 완성도 높은 결과물을 다듬고 있습니다.
                     </p>
                   </div>
@@ -329,7 +329,7 @@ export function DualAIWorkflow({
                       </div>
                     </div>
                     <div className="mb-2">
-                       <span className="font-black text-blue-700 text-sm tracking-widest uppercase">
+                       <span className="font-black text-slate-700 text-sm tracking-widest uppercase">
                          Evaluation Passed
                        </span>
                     </div>
@@ -381,7 +381,7 @@ export function DualAIWorkflow({
                   <div className="p-1.5 rounded-xl bg-amber-100 text-amber-700">
                     <HelpCircle className="w-3.5 h-3.5" />
                   </div>
-                  <p className="text-xs font-black text-amber-900 uppercase tracking-tight">연구 상식 퀴즈</p>
+                  <p className="text-xs font-black text-slate-900 uppercase tracking-tight">연구 상식 퀴즈</p>
                 </div>
                 {selectedIdx !== null && (
                   <button onClick={handleNextQuiz} className="text-[10px] font-black bg-white/80 border border-amber-200 text-amber-900 px-3 py-1 rounded-lg hover:bg-white transition-all shadow-xs flex items-center gap-1">

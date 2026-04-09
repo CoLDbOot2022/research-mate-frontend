@@ -3,7 +3,9 @@
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Star, FileText, Users, ThumbsUp, ArrowRight, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMindMap } from '@/context/MindMapContext';
@@ -13,6 +15,7 @@ import { ReportPreviewDemo } from '@/components/landing/ReportPreviewDemo';
 import { ComparisonSection } from '@/components/landing/ComparisonSection';
 import { ProblemSection } from '@/components/landing/ProblemSection';
 import { DualAISection } from '@/components/landing/DualAISection';
+import { track } from '@/lib/analytics';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -43,14 +46,31 @@ export default function LandingPage() {
                 학년, 과목, 관심사에 맞춘 AI 기반 추천 서비스로 당신만의 경쟁력을 만드세요.
                 수행평가부터 세특까지, 막막했던 주제 선정을 도와드립니다.
               </p>
-              <div className="flex flex-wrap gap-3 pt-4">
-                <Button size="lg" className="h-12 px-8 text-lg bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/subject')}>
-                  주제 추천받기
-                </Button>
-                <Button size="lg" className="h-12 px-6 text-lg bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 font-bold flex items-center shadow-sm" onClick={() => window.open('https://open.kakao.com/o/gPm7rkbi', '_blank')}>
-                  <MessageCircle className="w-5 h-5 mr-2 fill-current" />
-                  연구소 오픈채팅방
-                </Button>
+              <div className="flex flex-wrap gap-3 pt-10">
+                <div className="flex flex-col gap-2">
+                  <Button size="lg" className="h-14 px-10 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg" onClick={() => { track.heroCtaClicked('get_topic'); router.push('/subject'); }}>
+                    주제 추천받기
+                  </Button>
+                  <p className="text-[11px] text-slate-500 ml-1 font-medium italic opacity-90 leading-tight">
+                    * 현재 [수학] (공통/미적/기하/확통 등)만 지원됩니다.<br />
+                    (융합/경제수학 등 일부 과목 제외)
+                  </p>
+                </div>
+                <div className="relative">
+                  <motion.div 
+                    initial={{ y: 0 }}
+                    animate={{ y: [-3, 0, -3] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-100/80 backdrop-blur-sm text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-blue-200 shadow-sm z-10"
+                  >
+                    가입 시 선착순 프리미엄 1회권 증정!
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-100/80 border-r border-b border-blue-200 rotate-45" />
+                  </motion.div>
+                  <Button size="lg" className="h-12 px-6 text-lg bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 font-bold flex items-center shadow-sm" onClick={() => { track.heroCtaClicked('open_chat'); window.open('https://open.kakao.com/o/gPm7rkbi', '_blank'); }}>
+                    <MessageCircle className="w-5 h-5 mr-2 fill-current" />
+                    연구소 오픈채팅방
+                  </Button>
+                </div>
               </div>
 
             </div>
@@ -141,13 +161,24 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold mb-6">지금 바로 나만의 주제를 찾아보세요</h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">입시 준비, 더 이상 혼자 고민하지 마세요. 세특연구소 커뮤니티가 함께합니다.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => router.push('/subject')}>
+            <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
               무료로 주제 추천받기
             </Button>
-            <Button size="lg" className="h-14 px-8 text-lg font-bold bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 flex items-center shadow-lg" onClick={() => window.open('https://open.kakao.com/o/gPm7rkbi', '_blank')}>
-              <MessageCircle className="w-6 h-6 mr-2 fill-current" />
-              연구소 오픈채팅방
-            </Button>
+            <div className="relative">
+              <motion.div 
+                initial={{ y: 0 }}
+                animate={{ y: [3, 0, 3] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-full mt-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/95 backdrop-blur-sm text-blue-600 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-white shadow-lg z-10"
+              >
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white/95 rotate-45 shadow-[-1px_-1px_1px_rgba(0,0,0,0.05)]" />
+                가입 시 선착순 프리미엄 1회권 증정!
+              </motion.div>
+              <Button size="lg" className="h-14 px-8 text-lg font-bold bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 flex items-center shadow-lg" onClick={() => { track.bottomCtaClicked('open_chat'); window.open('https://open.kakao.com/o/gPm7rkbi', '_blank'); }}>
+                <MessageCircle className="w-6 h-6 mr-2 fill-current" />
+                연구소 오픈채팅방
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -166,8 +197,12 @@ export default function LandingPage() {
               <span>대표자: 류한준, 강필중</span>
               <span>사업자등록번호: 000-00-00000</span>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 items-center justify-center md:justify-end">
               <span>이메일: coldbootcp@gmail.com</span>
+              <Link href="/terms" className="font-bold text-slate-600 hover:text-slate-900 transition-colors">이용약관</Link>
+              <span className="text-slate-300">|</span>
+              <Link href="/privacy" className="font-bold text-slate-600 hover:text-slate-900 transition-colors">개인정보처리방침</Link>
+              <span className="text-slate-300">|</span>
               <span>© 2026 ColdBoot. All rights reserved.</span>
             </div>
           </div>

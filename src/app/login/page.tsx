@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Loader2 } from "lucide-react";
 
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { setAccessToken } from "@/lib/auth";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
+import { track } from "@/lib/analytics";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -20,6 +21,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => { track.loginPageViewed(); }, []);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -86,6 +89,7 @@ export default function LoginPage() {
               <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 bg-white px-2 text-xs text-slate-500">또는</span>
             </div>
             <GoogleLoginButton onSuccess={() => {
+              track.loginAttempted('google');
               const params = new URLSearchParams(window.location.search);
               const callback = params.get("callback") || "/";
               router.push(callback);

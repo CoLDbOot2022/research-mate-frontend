@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 type ReportItem = {
   report_id: string;
@@ -15,6 +16,7 @@ type ReportItem = {
   subjects: string[];
   created_at: string;
   status: string;
+  report_type?: string;
   is_bookmarked: boolean;
   progress?: number;
   phase?: string;
@@ -31,6 +33,7 @@ export default function MyReportsPage() {
     try {
       const res = await api.get<ReportItem[]>("/reports");
       setReports(res);
+      if (showLoading) track.myReportsViewed(res.length);
     } catch (e) {
       console.error(e);
       // Only redirect on initial load failure or 401
@@ -104,7 +107,12 @@ export default function MyReportsPage() {
                         <FileText className="w-4 h-4" />
                       </div>
                       <div>
-                        <h2 className="font-semibold text-lg leading-snug">{r.title}</h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-semibold text-lg leading-snug">{r.title}</h2>
+                          {r.report_type === "premium" && (
+                            <span className="text-[10px] bg-slate-900 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Premium</span>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-500 mt-1 inline-flex items-center gap-1">
                           <CalendarDays className="w-3 h-3" /> {new Date(r.created_at).toLocaleString("ko-KR")}
                         </p>
@@ -124,6 +132,18 @@ export default function MyReportsPage() {
                         </div>
                       ) : r.status === "failed" ? (
                         <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase">실패</span>
+                      ) : r.status === "topic_generated" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">주제 선정 완료</span>
+                        </div>
+                      ) : r.status === "awaiting_review" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase whitespace-nowrap">검수 대기중</span>
+                        </div>
+                      ) : r.status === "review_confirmed" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">멘토 리뷰 완료</span>
+                        </div>
                       ) : (
                         <div className="flex flex-col items-end gap-1">
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>
