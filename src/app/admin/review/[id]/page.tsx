@@ -166,14 +166,8 @@ export default function MentorReviewPage() {
       await api.post(endpoint, {
         content: updatedContent,
         mentor_comment: mentorComment || "멘토 리뷰가 진행 중입니다.",
+        title: extractedTitle,
       });
-      
-      if (extractedTitle && extractedTitle !== report.title) {
-        await api.patch(`/reports/${reportId}`, {
-          content: updatedContent,
-          title: extractedTitle
-        });
-      }
 
       alert(action === "draft" ? "임시 저장되었습니다." : "멘티에게 피드백을 전송했습니다.");
       if (action === "send") router.push("/admin");

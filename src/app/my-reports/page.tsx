@@ -134,6 +134,14 @@ export default function MyReportsPage() {
                         <div className="flex flex-col items-end gap-1">
                           <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">주제 선정 완료</span>
                         </div>
+                      ) : r.status === "awaiting_review" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase whitespace-nowrap">검수 대기중</span>
+                        </div>
+                      ) : r.status === "review_confirmed" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">멘토 리뷰 완료</span>
+                        </div>
                       ) : (
                         <div className="flex flex-col items-end gap-1">
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>

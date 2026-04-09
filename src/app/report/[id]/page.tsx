@@ -391,14 +391,25 @@ export default function ReportDetailPage() {
     }
   };
 
-  // ── Render: generating overlay ─────────────────────────────────────────────
-  if (loading) {
+  // ── Render: Loading & State logic ───────────────────────────────────────────
+  if (loading && !report) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-10 h-10 animate-spin mx-auto text-indigo-500" />
+          <p className="text-slate-500 font-medium animate-pulse">보고서 데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (report?.status === "generating" || (showProgressUI && (report?.status === "completed" || report?.status === "awaiting_review"))) {
     return (
       <div className="min-h-screen bg-slate-50 py-8 px-4">
         <div className="max-w-3xl mx-auto">
           <DualAIWorkflow
-            title="보고서 생성 중"
-            subtitle="AI 보조 연구원이 교과서 기반 보고서를 작성하고 있습니다."
+            title={report?.status === "generating" ? "보고서 생성 중" : "보고서 생성 완료!"}
+            subtitle={report?.status === "generating" ? "AI 보조 연구원이 교과서 기반 보고서를 작성하고 있습니다." : "최종 결과물을 정리하고 있습니다."}
             progress={displayProgressMeta?.progress ?? 0}
             writerTitle="Writer AI"
             writerSubtitle="교과서 문맥 수집 및 보고서 전문 작성"
@@ -424,7 +435,7 @@ export default function ReportDetailPage() {
 
   if (!report) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500">
+      <div className="min-h-screen flex items-center justify-center text-slate-500 bg-slate-50">
         <div className="text-center space-y-2">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-300" />
           <p className="text-sm">보고서를 찾을 수 없습니다.</p>
