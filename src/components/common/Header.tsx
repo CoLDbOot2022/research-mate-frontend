@@ -96,6 +96,18 @@ export function Header() {
 
         <nav className="hidden md:flex items-center space-x-8">
           <Link
+            href="/about"
+            className={`text-sm font-semibold transition-colors ${pathname === "/about" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
+          >
+            Our Vision
+          </Link>
+          <Link
+            href="/mentors"
+            className={`text-sm font-semibold transition-colors ${pathname === "/mentors" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
+          >
+            Mentors
+          </Link>
+          <Link
             href="/subject"
             className={`text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
           >
