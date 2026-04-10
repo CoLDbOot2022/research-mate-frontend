@@ -698,14 +698,20 @@ export default function ReportDetailPage() {
 // ─── Component: ReportPaper ──────────────────────────────────────────────────
 
 function ReportPaper({ 
+  id,
   children, 
+  createdAt,
+  showMentorBadge
 }: { 
+  id?: string;
   children: React.ReactNode; 
   createdAt?: string; 
   showMentorBadge?: boolean;
 }) {
+    const dateStr = createdAt ? new Date(createdAt).toLocaleDateString("ko-KR") : null;
+
     return (
-        <div id="report-paper-unified" className="w-full max-w-[850px] mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-100 min-h-[500px] transition-all duration-300">
+        <div id={id || "report-paper-unified"} className="w-full max-w-[850px] mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-100 min-h-[500px] transition-all duration-300">
             <div className="prose prose-slate max-w-none focus:outline-none min-h-[500px] prose-h1:text-4xl prose-h1:font-black prose-h1:tracking-tight prose-h1:mb-2 prose-h2:text-2xl prose-p:leading-relaxed prose-headings:font-bold">
                 <div className="report-content-body">
                     {children}

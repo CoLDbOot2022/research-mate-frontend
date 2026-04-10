@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { 
-  BookOpen, 
-  CheckCircle2, 
+import {
+  BookOpen,
+  CheckCircle2,
   ShieldCheck,
   School,
   FileText,
@@ -113,14 +113,13 @@ export default function AboutPage() {
                 <h3 className="text-3xl font-black tracking-tighter text-slate-900">강필중</h3>
                 <p className="text-slate-700 font-bold text-lg flex items-center gap-2">
                   <School className="w-5 h-5" />
-                  서울대학교 인공지능대학원 학부연구생 (現)
+                  고려대학교 스마트보안학부
                 </p>
               </div>
-              
+
               <div className="space-y-4">
                 <ul className="space-y-3">
                   {[
-                    "서울대학교 졸업 예정 (AI/컴퓨터공학 전공)",
                     "과학기술정보통신부 소프트웨어 마에스트로 연수 과정 수료",
                     "2025 국방 스타트업 챌린지 및 공군 창업경진대회 수상 (창의상)",
                     "기존 입시 분석 알고리즘 고도화 및 루브릭 평가 시스템 설계"
@@ -141,14 +140,13 @@ export default function AboutPage() {
                 <h3 className="text-3xl font-black tracking-tighter text-slate-900">류한준</h3>
                 <p className="text-slate-700 font-bold text-lg flex items-start gap-2 leading-tight">
                   <School className="w-5 h-5 shrink-0 mt-0.5" />
-                  <span>서울대학교 차세대반도체소자연구실 학부연구생 (前)</span>
+                  <span>서울대학교 조선해양공학, 인공지능반도체공학과 </span>
                 </p>
               </div>
 
               <div className="space-y-4">
                 <ul className="space-y-3">
                   {[
-                    "서울대학교 전기정보공학부 학사",
                     "서울대학교 경영대학 전략마케팅 학회 SNEW 6기",
                     "오픈스카이(OpenSky) 스쿨 입시/학업 멘토 역임 및 활동 중",
                     "용인시 청년창업 지원사업 선정 및 'Voice Guard' 서비스 출시 및 운영",

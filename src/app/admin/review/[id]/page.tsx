@@ -39,7 +39,7 @@ type ReportResponse = {
 };
 
 // Deprecated sectionDefs, will now use a single mentor_comment field
-const sectionDefs = [];
+const sectionDefs: { key: string; label: string }[] = [];
 
 export default function MentorReviewPage() {
   const router = useRouter();
