@@ -8,6 +8,16 @@ import * as amplitude from "@amplitude/unified";
 const t = (name: string, props?: Record<string, unknown>) => amplitude.track(name, props);
 
 export const track = {
+  // ── Generic ────────────────────────────────────────────────────────────
+  buttonClicked: (name: string, location: string, props?: Record<string, unknown>) => {
+    t("Button Clicked", {
+      button_name: name,
+      location,
+      page_path: typeof window !== "undefined" ? window.location.pathname : "",
+      ...props,
+    });
+  },
+
   // ── Landing Page ───────────────────────────────────────────────────────
   heroCtaClicked: (cta: "get_topic" | "open_chat") => {
     t("CTA Button Clicked", { location: "hero", button: cta });
@@ -96,11 +106,50 @@ export const track = {
     t("Credit Purchase Completed", props);
   },
 
-  // ── Auth ───────────────────────────────────────────────────────────────
+  // ── Support / Community ────────────────────────────────────────────────
+  supportPageViewed: () => {
+    t("Support Page Viewed");
+  },
+  supportInquirySubmitted: (props: { category: string; content_length: number }) => {
+    t("Support Inquiry Submitted", props);
+  },
+  supportReplySubmitted: () => {
+    t("Support Reply Submitted");
+  },
+
+  // ── Mentors ──────────────────────────────────────────────────────────────
+  mentorsPageViewed: () => {
+    t("Mentors Page Viewed");
+  },
+
+  // ── Auth & Account ───────────────────────────────────────────────────────
   loginPageViewed: () => {
     t("Login Page Viewed");
   },
-  loginAttempted: (method: "google") => {
+  loginAttempted: (method: "google" | "email") => {
     t("Login Attempted", { method });
+  },
+  registrationPageViewed: () => {
+    t("Registration Page Viewed");
+  },
+  registrationAttempted: () => {
+    t("Registration Attempted");
+  },
+  registrationSuccessful: () => {
+    t("Registration Successful");
+  },
+  myPageViewed: () => {
+    t("My Page Viewed");
+  },
+
+  // ── Admin ────────────────────────────────────────────────────────────────
+  adminDashboardViewed: () => {
+    t("Admin Dashboard Viewed");
+  },
+  adminReviewStarted: (props: { report_id: string }) => {
+    t("Admin Review Started", props);
+  },
+  adminReviewCompleted: (props: { report_id: string }) => {
+    t("Admin Review Completed", props);
   },
 };
