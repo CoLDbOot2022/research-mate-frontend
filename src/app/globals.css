@@ -278,6 +278,16 @@ body {
     visibility: visible !important;
   }
 
+  .report-content-body h1:first-child {
+    margin-top: -15mm !important; /* Offsets the 15mm head-buffer on the first page */
+    padding-top: 0 !important;
+  }
+
+  .prose {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
   /* Keep KaTeX renderings visible */
   .katex {
     visibility: visible !important;
@@ -317,10 +327,10 @@ body {
     border-collapse: collapse !important;
   }
   .print-header-space {
-    height: 20mm !important;
+    height: 15mm !important;
   }
   .print-footer-space {
-    height: 20mm !important;
+    height: 25mm !important;
   }
 }
 

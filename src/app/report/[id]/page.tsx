@@ -9,6 +9,7 @@ import { DualAIWorkflow } from "@/components/common/DualAIWorkflow";
 import { getAccessToken } from "@/lib/auth";
 import { api } from "@/lib/api/client";
 import type { CommentData } from "@/components/editor/TipTapEditor";
+import { exportToWord } from "@/lib/export-utils";
 
 import { ReportHeader } from "@/components/report/ReportHeader";
 import { ReportPremiumBanner } from "@/components/report/ReportPremiumBanner";
@@ -131,7 +132,7 @@ export default function ReportDetailPage() {
           const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
           const metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
 
-          mergedHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${mergedHtml}`;
+          mergedHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n${mergedHtml}`;
           setEditorHtml(mergedHtml);
         }
 
@@ -156,7 +157,7 @@ export default function ReportDetailPage() {
                 const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
                 const metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
 
-                origHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${origHtml}`;
+                origHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n${origHtml}`;
                 setOriginalHtml(origHtml);
             }
         }
@@ -347,6 +348,12 @@ export default function ReportDetailPage() {
         }
     };
 
+    const handleExportWord = () => {
+        if (!report || !editorHtml) return;
+        const filename = `${report.title}_리포트`;
+        exportToWord(editorHtml, filename);
+    };
+
   const handlePrint = () => {
     // Force switch to mentor tab for the best print result
     setActiveTab("mentor");
@@ -426,6 +433,7 @@ export default function ReportDetailPage() {
           onBack={() => router.push("/my-reports")}
           onToggleBookmark={onToggleBookmark}
           onDownloadPdf={handlePrint}
+          onExportWord={handleExportWord}
           onCopy={handleCopy}
           isCopying={isCopying}
           onToggleEdit={() => setEditMode((prev) => !prev)}
