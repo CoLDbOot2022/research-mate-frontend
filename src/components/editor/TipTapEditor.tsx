@@ -23,6 +23,7 @@ interface TipTapEditorProps {
   onCommentClick?: (commentId: string) => void;
   comments?: CommentData[];
   showCommentControls?: boolean;
+  hideComments?: boolean;
 }
 
 export function TipTapEditor({
@@ -33,6 +34,7 @@ export function TipTapEditor({
   onCommentClick,
   comments = [],
   showCommentControls = true,
+  hideComments = false,
 }: TipTapEditorProps) {
   const [mounted, setMounted] = useState(false);
   const [tick, setTick] = useState(0);
@@ -127,7 +129,7 @@ export function TipTapEditor({
   };
 
   return (
-    <div className="w-full flex flex-col">
+    <div className={`w-full flex flex-col ${hideComments ? 'hide-comments' : ''}`}>
       {editable && (
         <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-2 mb-4 sticky top-0 bg-white z-10 transition-colors">
           <button

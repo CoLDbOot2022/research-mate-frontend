@@ -51,30 +51,14 @@ export function ReportPremiumBanner({
               멘토의 리뷰가 도착했습니다!
             </h3>
             <p className="text-sm text-indigo-700 leading-relaxed mb-3">
-              멘토가 보고서 수정을 완료했습니다. 아래 탭에서 <span className="font-bold underline text-indigo-800">원본, 수정본, 그리고 변경사항(비교하기)</span>을 꼼꼼히 확인해주세요. 
-              수정 요청이 더 필요한 경우 채팅을 남겨주시고, 만족스러우시다면 <span className="font-bold text-indigo-800">'피드백 수락 및 확정'</span> 버튼을 눌러주세요.
+              멘토가 보고서 수정을 완료했습니다. 아래 탭에서 <span className="font-bold underline text-indigo-800">원본, 수정본, 그리고 변경사항(비교하기)</span>을 꼼꼼히 확인해주세요.{" "}
+              우측 패널에서 섹션별 멘토 총평을 확인하시고, 추가 수정이 필요한 경우 <span className="font-bold text-indigo-800">'수정 요청하기'</span> 버튼으로 사유를 남겨주세요.
             </p>
           </div>
         </div>
       )}
 
-      {/* Premium review completed */}
-      {reportType === "premium" && status === "completed" && mentorReviewedAt && (
-        <div className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 flex items-start gap-4 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-100 rounded-full blur-3xl opacity-40 -mr-12 -mt-12 pointer-events-none" />
-          <div className="bg-emerald-100 p-3 rounded-xl flex-shrink-0 shadow-inner">
-            <CheckCircle2 className="w-5 h-5 text-emerald-700" />
-          </div>
-          <div className="space-y-1 relative z-10">
-            <h3 className="text-base font-bold text-emerald-900">
-              최종 문서가 완성되었습니다
-            </h3>
-            <p className="text-sm text-emerald-700 leading-relaxed">
-              멘토 리뷰가 반영된 최종 프리미엄 보고서입니다. 우측 코멘트 패널에서 전문가 피드백을 확인해보세요.
-            </p>
-          </div>
-        </div>
-      )}
+
 
       {/* Mentor general comment */}
       {mentorComment && (
