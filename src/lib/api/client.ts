@@ -60,8 +60,8 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
 
         if (response.status === 401 && typeof window !== 'undefined') {
             // Handle token expiration / redirect to login
-            // localStorage.removeItem('accessToken');
-            // window.location.href = '/login';
+            localStorage.removeItem('accessToken');
+            window.location.href = '/login?callback=' + encodeURIComponent(window.location.pathname + window.location.search);
         }
 
         const data = (await response.json()) as T | ApiError;

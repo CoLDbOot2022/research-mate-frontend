@@ -203,6 +203,8 @@ export default function LandingPage() {
               <span className="text-slate-300">|</span>
               <Link href="/privacy" className="font-bold text-slate-600 hover:text-slate-900 transition-colors">개인정보처리방침</Link>
               <span className="text-slate-300">|</span>
+              <Link href="/support" className="font-bold text-slate-600 hover:text-slate-900 transition-colors">고객센터</Link>
+              <span className="text-slate-300">|</span>
               <span>© 2026 ColdBoot. All rights reserved.</span>
             </div>
           </div>

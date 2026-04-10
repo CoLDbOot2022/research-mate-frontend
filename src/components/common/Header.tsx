@@ -87,14 +87,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 no-print">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2 shrink-0">
           <div className="flex items-center justify-center">
             <img src="/logo.png" alt="세특연구소 로고" className="w-8 h-8 object-contain" />
           </div>
           <span className="font-bold text-xl text-slate-900 tracking-tight">세특연구소</span>
         </Link>
-
-        <nav className="hidden md:flex items-center space-x-8">
+ 
+        {/* Left-aligned links */}
+        <nav className="hidden md:flex items-center space-x-8 ml-10">
           <Link
             href="/about"
             className={`text-sm font-semibold transition-colors ${pathname === "/about" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
@@ -107,23 +108,31 @@ export function Header() {
           >
             Mentors
           </Link>
-          <Link
-            href="/subject"
-            className={`text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
-          >
-            주제 추천받기
-          </Link>
-          {me && (
-            <Link
-              href="/my-reports"
-              className={`text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
-            >
-              기록 페이지
-            </Link>
-          )}
         </nav>
-
-        <div className="flex items-center space-x-2">
+ 
+        {/* Spacer to push remaining items to the right */}
+        <div className="flex-grow" />
+ 
+        {/* Right-aligned links and user actions */}
+        <div className="flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link
+              href="/subject"
+              className={`text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
+            >
+              주제 추천받기
+            </Link>
+            {me && (
+              <Link
+                href="/my-reports"
+                className={`text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
+              >
+                기록 페이지
+              </Link>
+            )}
+          </nav>
+ 
+          <div className="flex items-center space-x-2">
           {me ? (
             <div className="relative" ref={menuRef}>
               <Button
@@ -199,6 +208,7 @@ export function Header() {
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700 font-bold px-4" onClick={() => router.push("/register")}>회원가입</Button>
             </>
           )}
+          </div>
         </div>
       </div>
     </header>

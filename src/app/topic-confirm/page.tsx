@@ -54,6 +54,12 @@ function TopicConfirmContent() {
   const getRequestKey = useCallback(() => JSON.stringify(getRequestBody()), [getRequestBody]);
 
   useEffect(() => {
+    if (!getAccessToken()) {
+      router.push("/login?callback=" + encodeURIComponent(window.location.pathname + window.location.search));
+    }
+  }, [router]);
+
+  useEffect(() => {
     if (!loading) return;
     const startedAt = Date.now();
     const timer = setInterval(() => setElapsedMs(Date.now() - startedAt), 150);
