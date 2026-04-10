@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 type PackageCredit = {
   package_code: string;
@@ -112,6 +113,7 @@ export default function AdminPage() {
         setUsers(userData);
         setInquiries(inquiryData);
         setReports(reportData);
+        track.adminDashboardViewed();
       } catch {
         setNotAuthorized(true);
       } finally {

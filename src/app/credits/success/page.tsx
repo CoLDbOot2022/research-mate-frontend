@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api/client";
+import { track } from "@/lib/analytics";
 
 type ConfirmResponse = {
   order_id: string;
@@ -51,6 +52,11 @@ function CreditsSuccessContent() {
           amount,
         });
         setResult(data);
+        track.creditPurchaseCompleted({
+          package_code: orderId.split("_")[0] ?? "unknown",
+          amount,
+          credits_added: data.credits_added,
+        });
       } catch (message) {
         setError(typeof message === "string" ? message : "결제 승인에 실패했습니다.");
       } finally {

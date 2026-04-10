@@ -28,6 +28,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    track.loginAttempted("email");
 
     try {
       const body = new URLSearchParams();

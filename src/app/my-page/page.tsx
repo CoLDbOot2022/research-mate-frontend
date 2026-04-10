@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api/client";
 import { clearAccessToken, getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -55,6 +56,7 @@ export default function MyPage() {
 
         const data = (await res.json()) as MeResponse;
         setMe(data);
+        track.myPageViewed();
       } catch {
         clearAccessToken();
         router.replace("/login");

@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 import { TipTapEditor, CommentData } from "@/components/editor/TipTapEditor";
 import { CommentSidebar } from "@/components/editor/CommentSidebar";
 import { markdownToHtml, flattenLists } from "@/lib/editor-utils";
@@ -130,6 +131,7 @@ export default function MentorReviewPage() {
           setEditorHtml(mergedHtml);
         }
         setComments(parsedComments);
+        track.adminReviewStarted({ report_id: reportId });
       } catch (e) {
         console.error(e);
         alert("리포트를 불러오는 데 실패했습니다.");
@@ -170,8 +172,10 @@ export default function MentorReviewPage() {
       });
 
       alert(action === "draft" ? "임시 저장되었습니다." : "멘티에게 피드백을 전송했습니다.");
-      if (action === "send") router.push("/admin");
-      else {
+      if (action === "send") {
+        track.adminReviewCompleted({ report_id: reportId });
+        router.push("/admin");
+      } else {
           // Refresh report info
           const updated = await api.get<ReportResponse>(`/admin/reports/${reportId}`);
           setReport(updated);

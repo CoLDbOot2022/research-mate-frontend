@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Mail, ExternalLink, Award } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { track } from "@/lib/analytics";
 
 type Mentor = {
   name: string;
@@ -16,6 +17,8 @@ type Mentor = {
 const MENTORS: Mentor[] = [];
 
 export default function MentorsPage() {
+  useEffect(() => { track.mentorsPageViewed(); }, []);
+
   return (
     <div className="min-h-screen bg-[#fdfdff] py-16 px-4">
       <div className="max-w-6xl mx-auto space-y-12">

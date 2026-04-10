@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Loader2 } from "lucide-react";
 
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api/client";
+import { track } from "@/lib/analytics";
 
 type RegisterResponse = {
   id: number;
@@ -18,6 +19,8 @@ type RegisterResponse = {
 
 export default function RegisterPage() {
   const router = useRouter();
+
+  useEffect(() => { track.registrationPageViewed(); }, []);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,6 +32,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    track.registrationAttempted();
 
     try {
       await api.post<RegisterResponse>("/auth/register", {
@@ -36,6 +40,7 @@ export default function RegisterPage() {
         email,
         password,
       });
+      track.registrationSuccessful();
       router.push("/login");
     } catch (err: unknown) {
       setError(typeof err === 'string' ? err : "회원가입 중 오류가 발생했습니다.");

@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
 import { getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 type InquiryMessage = {
   id: number;
@@ -61,7 +62,7 @@ export default function SupportPage() {
     const token = getAccessToken();
     const authed = !!token;
     setIsLoggedIn(authed);
-    
+    track.supportPageViewed();
     if (authed) {
       loadInquiries();
     } else {
@@ -86,11 +87,8 @@ export default function SupportPage() {
 
     setSubmitting(true);
     try {
-      await api.post("/inquiry", {
-        category,
-        content,
-      });
-      
+      await api.post("/inquiry", { category, content });
+      track.supportInquirySubmitted({ category, content_length: content.length });
       setContent("");
       await loadInquiries();
       alert("문의가 성공적으로 접수되었습니다.");
@@ -108,6 +106,7 @@ export default function SupportPage() {
     setReplyingId(inquiryId);
     try {
       const updated = await api.post<Inquiry>(`/inquiry/${inquiryId}/reply`, { content: text });
+      track.supportReplySubmitted();
       setInquiries((prev) => prev.map((iq) => (iq.id === inquiryId ? updated : iq)));
       setReplyTexts((prev) => ({ ...prev, [inquiryId]: "" }));
     } catch (error) {
