@@ -176,11 +176,14 @@ body {
 /* Print Styles */
 @media print {
   @page {
-    margin: 0 !important; /* Rely entirely on TipTap's internal margins */
+    margin: 0 !important; /* Forces browser to hide headers/footers (URL, Page numbers) */
     size: A4;
   }
 
   body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -275,6 +278,16 @@ body {
     visibility: visible !important;
   }
 
+  .report-content-body h1:first-child {
+    margin-top: -15mm !important; /* Offsets the 15mm head-buffer on the first page */
+    padding-top: 0 !important;
+  }
+
+  .prose {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
   /* Keep KaTeX renderings visible */
   .katex {
     visibility: visible !important;
@@ -286,4 +299,48 @@ body {
     break-after: avoid;
     page-break-after: avoid;
   }
+
+  /* FORCE HIDE COMMENTS DURING PRINT */
+  [data-comment-id],
+  span[data-comment-id] {
+    background-color: transparent !important;
+    border-bottom: none !important;
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
+  /* Ensure the paper container is centered and full width on A4 */
+  #report-paper-unified {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 20mm !important; /* Left/Right managed here, Top/Bottom managed by table thead/tfoot */
+    box-sizing: border-box !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  /* Table-based margin trick for every page */
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  .print-header-space {
+    height: 15mm !important;
+  }
+  .print-footer-space {
+    height: 25mm !important;
+  }
+}
+
+/* Hide highlights and interaction for comment marks in finalized reports */
+.hide-comments [data-comment-id] {
+  background-color: transparent !important;
+  border-bottom: none !important;
+  cursor: default !important;
+  transition: none !important;
+}
+.hide-comments [data-comment-id]:hover {
+  background-color: transparent !important;
 }

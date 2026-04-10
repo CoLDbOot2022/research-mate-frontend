@@ -1,17 +1,27 @@
 "use client";
-
+ 
 import { CommentData } from './TipTapEditor';
-import { MessageSquare, Trash2 } from 'lucide-react';
-
+import { MessageSquare, Trash2, Eye, EyeOff } from 'lucide-react';
+ 
 interface CommentSidebarProps {
   comments: CommentData[];
   activeCommentId: string | null;
   onCommentClick?: (id: string) => void;
   onCommentDelete?: (id: string) => void;
   editable?: boolean;
+  showFeedback?: boolean;
+  onToggleFeedback?: () => void;
 }
-
-export function CommentSidebar({ comments, activeCommentId, onCommentClick, onCommentDelete, editable }: CommentSidebarProps) {
+ 
+export function CommentSidebar({ 
+    comments, 
+    activeCommentId, 
+    onCommentClick, 
+    onCommentDelete, 
+    editable,
+    showFeedback = true,
+    onToggleFeedback
+}: CommentSidebarProps) {
   if (comments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 h-full">
@@ -21,13 +31,38 @@ export function CommentSidebar({ comments, activeCommentId, onCommentClick, onCo
       </div>
     );
   }
-
+ 
   return (
     <div className="flex flex-col gap-3 max-h-[800px] overflow-y-auto pr-2 pb-10">
-      <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 sticky top-0 bg-white/90 backdrop-blur py-2 z-10">
-        <MessageSquare className="w-4 h-4 text-slate-600" />
-        멘토 피드백 목록 ({comments.length})
-      </h3>
+      <div className="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur py-2 z-10 border-b border-slate-100 mb-2">
+        <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-slate-600" />
+          멘토 피드백 목록 ({comments.length})
+        </h3>
+        
+        {onToggleFeedback && (
+          <button
+            onClick={onToggleFeedback}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+              showFeedback 
+                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100' 
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            {showFeedback ? (
+              <>
+                <Eye className="w-3 h-3" />
+                하이라이트 ON
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-3 h-3" />
+                하이라이트 OFF
+              </>
+            )}
+          </button>
+        )}
+      </div>
       
       {comments.map((comment) => {
         const isActive = activeCommentId === comment.id;
@@ -53,7 +88,7 @@ export function CommentSidebar({ comments, activeCommentId, onCommentClick, onCo
             <div className="mt-3 text-[10px] text-slate-400 flex justify-between items-center">
               <span>{new Date(comment.createdAt).toLocaleString('ko-KR')}</span>
             </div>
-
+ 
             {editable && onCommentDelete && (
               <button
                 onClick={(e) => {
@@ -72,3 +107,4 @@ export function CommentSidebar({ comments, activeCommentId, onCommentClick, onCo
     </div>
   );
 }
+

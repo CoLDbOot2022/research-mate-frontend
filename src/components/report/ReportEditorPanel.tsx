@@ -15,6 +15,7 @@ type ReportEditorPanelProps = {
   onCommentClick: (id: string) => void;
   noWrapper?: boolean;
   showCommentControls?: boolean;
+  hideComments?: boolean;
 };
 
 export function ReportEditorPanel({
@@ -28,6 +29,7 @@ export function ReportEditorPanel({
   onCommentClick,
   noWrapper,
   showCommentControls = true,
+  hideComments = false,
 }: ReportEditorPanelProps) {
   const hasComments = comments.length > 0;
 
@@ -77,6 +79,7 @@ export function ReportEditorPanel({
                   comments={comments}
                   onCommentClick={onCommentClick}
                   showCommentControls={showCommentControls}
+                  hideComments={hideComments}
                 />
               </div>
             ) : (

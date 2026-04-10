@@ -108,7 +108,15 @@ export default function MyReportsPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h2 className="font-semibold text-lg leading-snug">{r.title}</h2>
+                          <h2 className={`font-semibold leading-snug break-words line-clamp-2 ${
+                            r.title.length < 25 
+                              ? "text-lg" 
+                              : r.title.length < 45 
+                                ? "text-base" 
+                                : "text-sm"
+                          }`} style={{ textWrap: 'balance' } as any}>
+                            {r.title}
+                          </h2>
                           {r.report_type === "premium" && (
                             <span className="text-[10px] bg-slate-900 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Premium</span>
                           )}

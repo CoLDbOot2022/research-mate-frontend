@@ -8,6 +8,9 @@ import {
   Pencil,
   Save,
   Eye,
+  Copy,
+  Check,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +25,9 @@ type ReportHeaderProps = {
   onBack: () => void;
   onToggleBookmark: () => void;
   onDownloadPdf: () => void;
+  onExportWord?: () => void;
+  onCopy?: () => void;
+  isCopying?: boolean;
   onToggleEdit: () => void;
   onSave: () => void;
 };
@@ -44,6 +50,9 @@ export function ReportHeader({
   onBack,
   onToggleBookmark,
   onDownloadPdf,
+  onExportWord,
+  onCopy,
+  isCopying,
   onToggleEdit,
   onSave,
 }: ReportHeaderProps) {
@@ -51,8 +60,14 @@ export function ReportHeader({
     <div className="flex flex-wrap items-start justify-between gap-4 mb-6 no-print">
       {/* Left: title + status */}
       <div className="min-w-0">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate max-w-[480px]">
+        <div className="flex items-start gap-2.5 flex-wrap">
+          <h1 className={`font-black tracking-tight break-words line-clamp-2 transition-all duration-300 ${
+            title.length < 15 
+              ? "text-2xl md:text-3xl" 
+              : title.length < 30 
+                ? "text-xl md:text-2xl" 
+                : "text-lg md:text-xl"
+          }`} style={{ textWrap: 'balance' } as any}>
             {title}
           </h1>
           {reportType === "premium" && (
@@ -107,6 +122,34 @@ export function ReportHeader({
           <Download className="w-3.5 h-3.5 mr-1.5" />
           PDF
         </Button>
+
+        {onExportWord && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportWord}
+            className="rounded-full px-4 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all font-medium"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+            워드
+          </Button>
+        )}
+
+        {onCopy && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCopy}
+            className="rounded-full px-4 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all font-medium"
+          >
+            {isCopying ? (
+              <Check className="w-3.5 h-3.5 mr-1.5 text-slate-900" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+            )}
+            {isCopying ? "복사됨!" : "복사"}
+          </Button>
+        )}
 
         {!editMode && status !== "awaiting_review" && (
           <Button

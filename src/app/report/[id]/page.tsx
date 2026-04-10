@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, MessageCircle, Send, Check, History, Layout, FileText, Split } from "lucide-react";
+import { Loader2, Check, History, Layout, FileText, Split, AlertCircle, X, ChevronDown, ChevronUp, Copy } from "lucide-react";
 import "katex/dist/katex.min.css";
 import { flattenLists, markdownToHtml } from "@/lib/editor-utils";
 import { DualAIWorkflow } from "@/components/common/DualAIWorkflow";
 import { getAccessToken } from "@/lib/auth";
 import { api } from "@/lib/api/client";
 import type { CommentData } from "@/components/editor/TipTapEditor";
+import { exportToWord } from "@/lib/export-utils";
 
 import { ReportHeader } from "@/components/report/ReportHeader";
 import { ReportPremiumBanner } from "@/components/report/ReportPremiumBanner";
@@ -16,17 +17,14 @@ import { ReportEditorPanel } from "@/components/report/ReportEditorPanel";
 import { ReportDiffView } from "@/components/report/ReportDiffView";
 import { CommentSidebar } from "@/components/editor/CommentSidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ReportContent = Record<string, unknown>;
 
-type FeedbackMessage = {
-  id: number;
-  sender_type: "mentor" | "mentee";
-  content: string;
+type RejectionLog = {
+  reason: string;
   created_at: string;
 };
 
@@ -42,19 +40,14 @@ type ReportResponse = {
   status_message?: string | null;
   report_type: "general" | "premium";
   mentor_comment: string | null;
+  section_summaries: Record<string, string> | null;
+  rejection_logs: RejectionLog[] | null;
   original_content: ReportContent | null;
   mentor_reviewed_at: string | null;
 };
 
-const sectionDefs = [
-  { key: "abstract", label: "초록" },
-  { key: "introduction", label: "1. 탐구 동기 및 목적" },
-  { key: "background", label: "2. 이론적 배경" },
-  { key: "methodology", label: "3. 탐구 방법" },
-  { key: "analysis", label: "4. 분석 및 해석" },
-  { key: "limitations", label: "5. 한계 및 보완점" },
-  { key: "conclusion", label: "6. 결론" },
-] as const;
+// sectionDefs was removed as reports now use a unified HTML format.
+
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -71,25 +64,18 @@ export default function ReportDetailPage() {
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState("mentor");
-  const [messages, setMessages] = useState<FeedbackMessage[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [sendingMessage, setSendingMessage] = useState(false);
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [showAllLogs, setShowAllLogs] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showProgressUI, setShowProgressUI] = useState(true);
   const [forceCompleteProgress, setForceCompleteProgress] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // ── Auto-scroll Chat ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+  const [showFeedback, setShowFeedback] = useState(true);
 
   // ── Loading timer ──────────────────────────────────────────────────────────
   const [loadingElapsedMs, setLoadingElapsedMs] = useState(0);
@@ -115,15 +101,9 @@ export default function ReportDetailPage() {
 
     const fetchReport = async () => {
       try {
-        const [res, msgs] = await Promise.all([
-            api.get<ReportResponse>(`/reports/${reportId}`),
-            api.get<FeedbackMessage[]>(`/reports/${reportId}/feedback`).catch(() => [])
-        ]);
-        
+        const res = await api.get<ReportResponse>(`/reports/${reportId}`);
         if (!mounted) return;
-
         setReport(res);
-        setMessages(msgs);
 
         // ── Build editor HTML ───────────────────────────────────────────────
         let mergedHtml = "";
@@ -135,32 +115,8 @@ export default function ReportDetailPage() {
             ? (res.content.comments as CommentData[])
             : [];
         } else {
-          // Legacy: build from section fields
-          const map: Record<string, string> = {};
-          for (const s of sectionDefs) {
-            const v = res.content?.[s.key];
-            if (typeof v === "string") map[s.key] = v;
-          }
-
-          let markdownSrc = "";
-          const rawSections = res.content?.sections;
-          if (Array.isArray(rawSections)) {
-            const normalised = rawSections
-              .filter((x): x is Record<string, unknown> => Boolean(x && typeof x === "object"))
-              .map((x) => ({
-                heading: typeof x.heading === "string" ? x.heading : "",
-                content: typeof x.content === "string" ? x.content : "",
-              }))
-              .filter((x) => x.heading && x.content);
-            markdownSrc = normalised.map((s) => `## ${s.heading}\n\n${s.content}`).join("\n\n");
-          } else {
-            markdownSrc = sectionDefs
-              .filter((d) => typeof map[d.key] === "string" && map[d.key].trim() !== "")
-              .map((d) => `## ${d.label}\n\n${map[d.key]}`)
-              .join("\n\n");
-          }
-
-          if (markdownSrc) mergedHtml = markdownToHtml(markdownSrc);
+          // If no unified HTML is present, handle as empty or minimal
+          mergedHtml = "<p>리포트 내용을 불러올 수 없습니다.</p>";
         }
 
         if (mergedHtml) {
@@ -174,12 +130,9 @@ export default function ReportDetailPage() {
 
           // Construct Integrated Notion-style Header
           const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
-          let metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
-          if (res.mentor_reviewed_at) {
-              metadataHtml = `<p><span>생성일: ${dateStr} | </span><span style="color: #059669; font-weight: 600; font-size: 0.75rem; background-color: #ecfdf5; padding: 2px 8px; border-radius: 9999px; border: 1px solid #d1fae5;">멘토 첨삭 완료</span></p>`;
-          }
+          const metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
 
-          mergedHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${mergedHtml}`;
+          mergedHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n${mergedHtml}`;
           setEditorHtml(mergedHtml);
         }
 
@@ -190,11 +143,7 @@ export default function ReportDetailPage() {
             if (targetOriginal.html && typeof targetOriginal.html === "string") {
                 origHtml = targetOriginal.html;
             } else {
-                // Fallback for legacy content
-                const rawSections = (targetOriginal as any).sections;
-                if (Array.isArray(rawSections)) {
-                    origHtml = markdownToHtml(rawSections.map((s: any) => `## ${s.heading}\n\n${s.content}`).join("\n\n"));
-                }
+                origHtml = "<p>원본 내용을 불러올 수 없습니다.</p>";
             }
             if (origHtml) {
                 origHtml = flattenLists(origHtml);
@@ -206,12 +155,9 @@ export default function ReportDetailPage() {
                 origHtml = origHtml.replace(/^<h1>.*?<\/h1>/i, "").trim();
 
                 const dateStr = new Date(res.created_at).toLocaleDateString("ko-KR");
-                let metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
-                if (res.mentor_reviewed_at) {
-                    metadataHtml = `<p><span>생성일: ${dateStr} | </span><span style="color: #059669; font-weight: 600; font-size: 0.75rem; background-color: #ecfdf5; padding: 2px 8px; border-radius: 9999px; border: 1px solid #d1fae5;">멘토 첨삭 완료</span></p>`;
-                }
+                const metadataHtml = `<p><span>생성일: ${dateStr}</span></p>`;
 
-                origHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n<hr />\n${origHtml}`;
+                origHtml = `<h1>${res.title}</h1>\n${metadataHtml}\n${origHtml}`;
                 setOriginalHtml(origHtml);
             }
         }
@@ -337,20 +283,7 @@ export default function ReportDetailPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || sendingMessage) return;
-    setSendingMessage(true);
-    try {
-      const msg = await api.post<FeedbackMessage>(`/reports/${reportId}/feedback`, {
-        content: newMessage,
-      });
-      setMessages((prev) => [...prev, msg]);
-      setNewMessage("");
-    } catch (e) {
-      console.error(e);
-      alert("메시지 전송에 실패했습니다.");
-    } finally {
-      setSendingMessage(false);
-    }
+    // Chat removed — no-op
   };
 
   const onAcceptReview = async () => {
@@ -371,17 +304,19 @@ export default function ReportDetailPage() {
   };
 
   const onRejectReview = async () => {
-    if (!report || !confirm("멘토에게 수정 요청을 보내시겠습니까?")) return;
+    if (!report) return;
+    setShowRejectModal(true);
+  };
+
+  const handleSubmitRejection = async () => {
+    if (!report || !rejectionReason.trim()) return;
     setRejecting(true);
     try {
-      await api.post(`/reports/${reportId}/reject-review`);
-      // Re-fetch report and messages
-      const [updated, msgs] = await Promise.all([
-          api.get<ReportResponse>(`/reports/${reportId}`),
-          api.get<FeedbackMessage[]>(`/reports/${reportId}/feedback`)
-      ]);
+      await api.post(`/reports/${reportId}/reject-review`, { reason: rejectionReason });
+      const updated = await api.get<ReportResponse>(`/reports/${reportId}`);
       setReport(updated);
-      setMessages(msgs);
+      setRejectionReason("");
+      setShowRejectModal(false);
       alert("수정 요청이 전달되었습니다. 멘토가 다시 검토 후 안내해 드릴 예정입니다.");
     } catch (e) {
       console.error(e);
@@ -389,6 +324,43 @@ export default function ReportDetailPage() {
     } finally {
       setRejecting(false);
     }
+  };
+
+    const [isCopying, setIsCopying] = useState(false);
+
+    const handleCopy = async () => {
+        if (!editorHtml) return;
+        
+        setIsCopying(true);
+        try {
+            // Convert HTML to a cleaner text version for clipboard
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = editorHtml;
+            // Basic cleanup: replace <h1>/<h2> with bold-like text or just plain text
+            const text = tempDiv.innerText || tempDiv.textContent || "";
+            
+            await navigator.clipboard.writeText(text);
+            // Show success feedback for 2 seconds
+            setTimeout(() => setIsCopying(false), 2000);
+        } catch (err) {
+            console.error("Failed to copy:", err);
+            setIsCopying(false);
+        }
+    };
+
+    const handleExportWord = () => {
+        if (!report || !editorHtml) return;
+        const filename = `${report.title}_리포트`;
+        exportToWord(editorHtml, filename);
+    };
+
+  const handlePrint = () => {
+    // Force switch to mentor tab for the best print result
+    setActiveTab("mentor");
+    // Wait a brief moment for the tab content to render/mount before printing
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   // ── Render: Loading & State logic ───────────────────────────────────────────
@@ -447,6 +419,7 @@ export default function ReportDetailPage() {
   // ── Render: report ─────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 print:p-0 print:bg-white print:overflow-visible print:block">
+      <div onClick={() => setShowRejectModal(false)} />
       <div className="max-w-[1400px] mx-auto print:max-w-none print:m-0 print:overflow-visible print:block">
 
         <ReportHeader
@@ -459,7 +432,10 @@ export default function ReportDetailPage() {
           disabled={showProgressUI}
           onBack={() => router.push("/my-reports")}
           onToggleBookmark={onToggleBookmark}
-          onDownloadPdf={() => window.print()}
+          onDownloadPdf={handlePrint}
+          onExportWord={handleExportWord}
+          onCopy={handleCopy}
+          isCopying={isCopying}
           onToggleEdit={() => setEditMode((prev) => !prev)}
           onSave={onSave}
         />
@@ -469,14 +445,14 @@ export default function ReportDetailPage() {
             reportType={report.report_type}
             status={report.status}
             mentorReviewedAt={report.mentor_reviewed_at}
-            mentorComment={report.mentor_comment}
+            mentorComment={null}
           />
 
-          {report.status === "review_confirmed" || report.status === "awaiting_review" ? (
+          {report.status === "review_confirmed" || report.status === "awaiting_review" || (report.status === "completed" && report.report_type === "premium") ? (
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
               <div className="xl:col-span-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <div className="flex items-center justify-between mb-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm no-print">
                     <TabsList className="bg-slate-100/50 p-1 gap-1 h-auto rounded-xl">
                       <TabsTrigger value="original" className="rounded-lg py-2 px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-sm font-medium transition-all">
                         <History className="w-4 h-4 mr-2" /> 원본
@@ -489,27 +465,37 @@ export default function ReportDetailPage() {
                       </TabsTrigger>
                     </TabsList>
                     
-                    <div className="flex items-center gap-2">
-                        {report.status === "review_confirmed" && (
-                            <Button 
-                                variant="outline"
-                                className="border-indigo-200 text-indigo-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 font-bold rounded-xl px-4 transition-all"
-                                onClick={onRejectReview}
-                                disabled={rejecting || accepting}
-                            >
-                                {rejecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <History className="w-4 h-4 mr-2" />}
-                                수정 요청하기
-                            </Button>
+                    
+                    {report.status !== "completed" && (
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                          {report.status === "review_confirmed" && (
+                              <Button 
+                                  variant="outline"
+                                  className="border-indigo-200 text-indigo-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 font-bold rounded-xl px-4 transition-all"
+                                  onClick={onRejectReview}
+                                  disabled={rejecting || accepting || (report.rejection_logs?.length ?? 0) >= 3}
+                              >
+                                  {rejecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <History className="w-4 h-4 mr-2" />}
+                                  수정 요청하기 ({(report.rejection_logs?.length ?? 0)}/3)
+                              </Button>
+                          )}
+                          <Button 
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6"
+                              onClick={onAcceptReview}
+                              disabled={accepting || rejecting || report.status !== "review_confirmed"}
+                          >
+                              {accepting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                              {report.status === "review_confirmed" ? "피드백 수락 및 확정" : "멘토 검토 대기 중"}
+                          </Button>
+                        </div>
+                        {report.status === "review_confirmed" && (report.rejection_logs?.length ?? 0) >= 3 && (
+                          <span className="text-[10px] text-rose-500 font-medium mr-1">
+                            재수정 요청 3회를 모두 사용하였습니다.
+                          </span>
                         )}
-                        <Button 
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6"
-                            onClick={onAcceptReview}
-                            disabled={accepting || rejecting || report.status !== "review_confirmed"}
-                        >
-                            {accepting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
-                            {report.status === "review_confirmed" ? "피드백 수락 및 확정" : "멘토 검토 대기 중"}
-                        </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   <TabsContent value="original" className="mt-0 focus-visible:outline-none">
@@ -540,96 +526,112 @@ export default function ReportDetailPage() {
                   
                   <TabsContent value="mentor" className="mt-0 focus-visible:outline-none">
                     <div className="w-full">
-                        <ReportPaper 
-                          createdAt={report.created_at}
-                          showMentorBadge={Boolean(report.mentor_reviewed_at)}
-                        >
-                            <ReportEditorPanel
-                                editorHtml={editorHtml}
-                                editMode={false}
-                                comments={comments}
-                                activeCommentId={activeCommentId}
-                                failed={false}
-                                failureInfo={failureInfo}
-                                onChange={setEditorHtml}
-                                onCommentClick={setActiveCommentId}
-                                noWrapper={true} 
-                                showCommentControls={false}
-                            />
-                        </ReportPaper>
+                        {/* Table wrapper for recurring print margins on every page */}
+                        <table className="print-table w-full border-collapse">
+                          <thead className="hidden print:table-header-group">
+                            <tr>
+                              <td className="print-header-space"></td>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <ReportPaper 
+                                  id="report-paper-unified"
+                                  createdAt={report.created_at}
+                                  showMentorBadge={Boolean(report.mentor_reviewed_at)}
+                                >
+                                    <ReportEditorPanel
+                                        editorHtml={editorHtml}
+                                        editMode={false}
+                                        comments={comments}
+                                        activeCommentId={activeCommentId}
+                                        failed={false}
+                                        failureInfo={failureInfo}
+                                        onChange={setEditorHtml}
+                                        onCommentClick={setActiveCommentId}
+                                        noWrapper={true} 
+                                        showCommentControls={false}
+                                        hideComments={!showFeedback}
+                                    />
+                                </ReportPaper>
+                              </td>
+                            </tr>
+                          </tbody>
+                          <tfoot className="hidden print:table-footer-group">
+                            <tr>
+                              <td className="print-footer-space"></td>
+                            </tr>
+                          </tfoot>
+                        </table>
                     </div>
                   </TabsContent>
                 </Tabs>
               </div>
 
-              <div className="xl:col-span-1 space-y-6 sticky top-24 h-[calc(100vh-120px)] flex flex-col min-h-0">
-                 {/* Mentor Comments (Global) */}
-                 <div className="bg-white rounded-3xl border border-slate-200/70 shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
-                    <div className="px-4 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-indigo-500" />
-                        <span className="font-bold text-slate-800">멘토 피드백</span>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-2">
-                        <CommentSidebar
-                            comments={comments}
-                            activeCommentId={activeCommentId}
-                            onCommentClick={setActiveCommentId}
-                            editable={false}
-                        />
-                    </div>
-                 </div>
+              {/* RIGHT SIDEBAR */}
+              <div className="xl:col-span-1 space-y-4 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto flex flex-col min-h-0 no-print">
 
-                 {/* Mentor Chat (Global) - Fixed height for chat, more space for comments */}
-                 <div className="bg-white rounded-3xl border border-slate-200/70 shadow-sm overflow-hidden flex flex-col h-[400px] shrink-0">
-                    <div className="px-4 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-                        <MessageCircle className="w-5 h-5 text-indigo-500" />
-                        <span className="font-bold text-slate-800">멘토와 대화</span>
-                    </div>
-                    
-                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
-                        {messages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-3">
-                                <MessageCircle className="w-10 h-10 text-slate-200" />
-                                <p className="text-sm text-slate-400 font-medium text-balance">멘토에게 궁금한 점을 남겨보세요.</p>
-                            </div>
-                        ) : (
-                            messages.map((m) => (
-                                <div key={m.id} className={`flex flex-col ${m.sender_type === "mentee" ? "items-end" : "items-start"}`}>
-                                    <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm shadow-sm leading-relaxed ${
-                                        m.sender_type === "mentee"
-                                            ? "bg-indigo-600 text-white rounded-tr-none"
-                                            : "bg-slate-100 text-slate-700 rounded-tl-none"
-                                    }`}>
-                                        {m.content}
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 mt-1.5 px-1 font-medium">
-                                        {new Date(m.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                {/* Mentor inline comments */}
+                <div className="bg-white rounded-3xl border border-slate-200/70 shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
+                  <div className="px-4 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-indigo-500" />
+                    <span className="font-bold text-slate-800">멘토 인라인 피드백</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2">
+                    <CommentSidebar
+                      comments={comments}
+                      activeCommentId={activeCommentId}
+                      onCommentClick={setActiveCommentId}
+                      editable={false}
+                      showFeedback={showFeedback}
+                      onToggleFeedback={() => setShowFeedback(prev => !prev)}
+                    />
+                  </div>
+                </div>
 
-                    <div className="p-4 border-t border-slate-100 bg-white">
-                        <div className="flex gap-2 bg-slate-100 rounded-2xl p-1.5 border border-slate-200/50">
-                            <Input 
-                                placeholder="메시지 입력..." 
-                                className="border-none bg-transparent focus-visible:ring-0 text-sm py-5 h-auto shadow-none"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                            />
-                            <Button 
-                                size="icon" 
-                                className="rounded-xl h-[44px] w-[44px] bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 shadow-sm"
-                                onClick={handleSendMessage}
-                                disabled={sendingMessage || !newMessage.trim()}
-                            >
-                                <Send className="w-5 h-5" />
-                            </Button>
-                        </div>
+                {/* Mentor General Summary */}
+                {report.mentor_comment && report.mentor_comment.trim() && (
+                  <div className="bg-white rounded-3xl border border-amber-200 shadow-sm overflow-hidden text-amber-900">
+                    <div className="px-4 py-4 border-b border-amber-100 bg-amber-50/50 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-amber-500" />
+                      <span className="font-bold text-slate-800">멘토 총평</span>
                     </div>
-                 </div>
+                    <div className="p-4">
+                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                        {report.mentor_comment}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejection request log */}
+                {(report.rejection_logs?.length ?? 0) > 0 && (
+                  <div className="bg-white rounded-3xl border border-rose-200 shadow-sm overflow-hidden">
+                    <button
+                      className="w-full px-4 py-3 border-b border-rose-100 bg-rose-50/50 flex items-center justify-between"
+                      onClick={() => setShowAllLogs(p => !p)}
+                    >
+                      <span className="font-bold text-sm text-rose-700 flex items-center gap-1.5">
+                        <History className="w-4 h-4" /> 내 수정 요청 내역 ({report.rejection_logs!.length})
+                      </span>
+                      {showAllLogs ? <ChevronUp className="w-4 h-4 text-rose-400" /> : <ChevronDown className="w-4 h-4 text-rose-400" />}
+                    </button>
+                    {showAllLogs && (
+                      <div className="p-3 space-y-2 max-h-[220px] overflow-y-auto">
+                        {[...report.rejection_logs!].reverse().map((log, i) => (
+                          <div key={i} className="bg-rose-50 rounded-xl p-2.5 space-y-0.5">
+                            <p className="text-xs text-rose-700 leading-relaxed whitespace-pre-wrap">{log.reason}</p>
+                            <p className="text-[10px] text-rose-400 font-medium">
+                              {new Date(log.created_at).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </div>
             </div>
           ) : (
@@ -648,11 +650,47 @@ export default function ReportDetailPage() {
                   onCommentClick={setActiveCommentId}
                   noWrapper={true}
                   showCommentControls={false}
+                  hideComments={report.status === "completed"}
                 />
             </ReportPaper>
           )}
         </div>
       </div>
+
+      {/* Rejection reason modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowRejectModal(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 space-y-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-black text-slate-900">수정 요청</h3>
+                <p className="text-sm text-slate-500 mt-1">멘토에게 수정이 필요한 이유를 알려주세요.</p>
+              </div>
+              <button onClick={() => setShowRejectModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <textarea
+              className="w-full border border-slate-200 rounded-2xl p-4 text-sm min-h-[120px] outline-none focus:ring-2 focus:ring-rose-300 resize-none"
+              placeholder="예: 3번 섹션의 논거가 교과서 내용과 맞지 않습니다. 재검토 부탁드립니다."
+              value={rejectionReason}
+              onChange={e => setRejectionReason(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setShowRejectModal(false)}>취소</Button>
+              <Button
+                className="flex-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold"
+                onClick={handleSubmitRejection}
+                disabled={rejecting || !rejectionReason.trim()}
+              >
+                {rejecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                수정 요청 전송
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
