@@ -168,11 +168,18 @@ export default function AboutPage() {
       <footer className="pt-20 pb-12 border-t border-slate-100 bg-slate-50">
         <div className="container mx-auto px-6 max-w-5xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="space-y-2 text-center md:text-left">
-              <div className="font-black text-xl tracking-tighter">COLDBOOT</div>
-              <p className="text-slate-400 text-sm">교육의 상향 평준화를 꿈꾸는 콜드부트 팀</p>
+            <div className="space-y-4 text-center md:text-left">
+              <div className="space-y-1">
+                <div className="font-black text-xl tracking-tighter">COLDBOOT</div>
+                <p className="text-slate-400 text-sm italic">교육의 상향 평준화를 꿈꾸는 콜드부트 팀</p>
+              </div>
+              <div className="text-[11px] text-slate-400 space-y-1 leading-relaxed">
+                <p>상호명: ColdBoot (콜드부트) | 대표자: 류한준, 강필중</p>
+                <p>사업자등록번호: 252-09-03289 | 유선번호: 010-4082-7417</p>
+                <p>주소: 서울특별시 동대문구 왕산로 69-2 (용두동) 904호</p>
+              </div>
             </div>
-            <div className="text-slate-400 text-sm">
+            <div className="text-slate-400 text-xs font-medium">
               © 2026 COLDBOOT Team. All rights reserved.
             </div>
           </div>

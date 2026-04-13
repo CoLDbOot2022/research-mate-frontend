@@ -195,7 +195,9 @@ export default function LandingPage() {
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               <span>상호명: ColdBoot (콜드부트)</span>
               <span>대표자: 류한준, 강필중</span>
-              <span>사업자등록번호: 000-00-00000</span>
+              <span>사업자등록번호: 252-09-03289</span>
+              <span>유선번호: 010-4082-7417</span>
+              <span>주소: 서울특별시 동대문구 왕산로 69-2 (용두동) 904호</span>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 items-center justify-center md:justify-end">
               <span>이메일: coldbootcp@gmail.com</span>

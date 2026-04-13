@@ -217,7 +217,7 @@ export default function CreditsPage() {
                   바로 보고서 생성을 시작하세요
                 </h1>
                 <p className="max-w-2xl text-base leading-7 text-slate-600">
-                  결제 즉시 계정으로 이용권이 충전되며, 보유하신 이용권으로 세특연구소의 맞춤형 심화 탐구 서비스를 자유롭게 이용하실 수 있습니다.
+                  입금 확인 후 24시간 내에 계정으로 이용권이 충전되며, 보유하신 이용권으로 세특연구소의 맞춤형 심화 탐구 서비스를 자유롭게 이용하실 수 있습니다.
                 </p>
               </div>
             </div>
@@ -247,7 +247,7 @@ export default function CreditsPage() {
 
               <div className="grid gap-2 text-sm text-slate-300 mt-1">
                 <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-slate-400">
-                  ✓ 결제 직후 마이페이지에서 상세 사용 내역 확인 가능
+                  ✓ 마이페이지에서 입금 신청 및 충전 상태 확인 가능
                 </div>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function CreditsPage() {
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-slate-500">
-                    {plan.credits}회 이용권이 결제 즉시 반영됩니다.
+                    입금 확인 후 {plan.credits}회 이용권이 충전됩니다.
                   </p>
                   {plan.code === "premium-review" && (
                     <p className="mt-2.5 text-xs font-bold text-rose-500 leading-relaxed break-keep">
@@ -306,9 +306,9 @@ export default function CreditsPage() {
                 <div className="space-y-3 mb-4">
                   {[
                     `심화 탐구 첨삭 및 생성 튜터링 ${plan.credits}회 크레딧`,
-                    "결제 즉시 바로 이용 가능",
-                    "보유 크레딧 무기한 이용 가능",
-                    "결제 내역 마이페이지 즉시 확인",
+                    "입금 확인 후 24시간 내 이용 가능",
+                    "보유 크레딧 유효기간 1년 (365일)",
+                    "입금 내역 마이페이지에서 확인 가능",
                   ].map((item) => (
                     <div key={item} className="flex items-start gap-3 text-sm text-slate-700">
                       <div className="mt-0.5 rounded-full bg-emerald-50 p-1 text-emerald-600">
