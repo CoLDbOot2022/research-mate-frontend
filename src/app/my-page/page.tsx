@@ -18,6 +18,13 @@ type MeResponse = {
   name?: string;
 };
 
+type PendingTransfer = {
+  order_id: string;
+  amount: number;
+  depositor_name: string;
+  requested_at: string;
+};
+
 type PaymentSummary = {
   credit_balance: number;
   packages: Array<{
@@ -25,6 +32,7 @@ type PaymentSummary = {
     credit_balance: number;
     claim_remaining: number;
   }>;
+  pending_transfers: PendingTransfer[];
 };
 
 export default function MyPage() {
@@ -32,6 +40,7 @@ export default function MyPage() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [basicCreditBalance, setBasicCreditBalance] = useState(0);
   const [premiumCreditBalance, setPremiumCreditBalance] = useState(0);
+  const [pendingTransfers, setPendingTransfers] = useState<PendingTransfer[]>([]);
   const [summaryError, setSummaryError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -67,6 +76,7 @@ export default function MyPage() {
         const summary = await api.get<PaymentSummary>("/payments/summary", { cache: "no-store" });
         setBasicCreditBalance(summary.packages.find((pkg) => pkg.code === "basic")?.credit_balance ?? 0);
         setPremiumCreditBalance(summary.packages.find((pkg) => pkg.code === "premium-review")?.credit_balance ?? 0);
+        setPendingTransfers(summary.pending_transfers || []);
         setSummaryError("");
       } catch (error) {
         setSummaryError(typeof error === "string" ? error : "크레딧 정보를 불러오지 못했습니다.");
@@ -144,6 +154,29 @@ export default function MyPage() {
                   </div>
                 </div>
               </div>
+
+              {pendingTransfers.length > 0 && (
+                <div className="space-y-3 rounded-[1.5rem] bg-indigo-50/50 p-5 border border-indigo-100">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-indigo-900">입금 확인 대기 중</p>
+                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black text-indigo-600">처리 중</span>
+                  </div>
+                  <div className="space-y-2">
+                    {pendingTransfers.map((p) => (
+                      <div key={p.order_id} className="flex flex-col gap-1 rounded-xl bg-white p-3 shadow-sm border border-indigo-50">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-500">{new Date(p.requested_at).toLocaleDateString()} 신청</span>
+                          <span className="font-black text-indigo-600">{p.amount.toLocaleString()}원</span>
+                        </div>
+                        <p className="text-[11px] text-slate-700">입금자: <span className="font-bold">{p.depositor_name}</span></p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-indigo-400 !mt-3 leading-relaxed">
+                    ※ 입금 확인 및 승인이 완료되면 크레딧이 충전되며 이 목록에서 자동으로 사라집니다.
+                  </p>
+                </div>
+              )}
 
               <Button className="h-11 w-full rounded-xl bg-blue-600 font-bold hover:bg-blue-700" onClick={() => router.push("/credits")}>
                 이용권 충전

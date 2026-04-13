@@ -83,6 +83,10 @@ export default function CreditsPage() {
   const [messageTone, setMessageTone] = useState<"success" | "neutral">("neutral");
   const [mounted, setMounted] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<PaymentPackage | null>(null);
+  const [depositorName, setDepositorName] = useState("");
+  const [isSubmittingTransfer, setIsSubmittingTransfer] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -154,6 +158,33 @@ export default function CreditsPage() {
       setMessage(typeof error === "string" ? error : "이용권 지급에 실패했습니다.");
     } finally {
       setClaimingCode("");
+    }
+  };
+
+  const requestTransfer = async () => {
+    if (!selectedPackage || !depositorName.trim()) return;
+    
+    setIsSubmittingTransfer(true);
+    setMessage("");
+
+    try {
+      await api.post("/payments/transfer-request", {
+        package_code: selectedPackage.code,
+        depositor_name: depositorName,
+      });
+
+      setShowTransferModal(false);
+      setShowSuccessModal(true);
+      setDepositorName("");
+      track.creditPurchaseInitiated({ 
+        package_code: selectedPackage.code, 
+        amount: selectedPackage.amount 
+      });
+    } catch (error: any) {
+      setMessageTone("neutral");
+      setMessage(error?.detail || "입금 신청에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSubmittingTransfer(false);
     }
   };
 
@@ -295,20 +326,13 @@ export default function CreditsPage() {
                       : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200"
                   }`}
                   onClick={() => {
-                    const planAmount = summary?.packages.find(p => p.code === plan.code)?.amount ?? plan.amount;
-                    track.creditPurchaseInitiated({ package_code: plan.code, amount: planAmount });
-                    claimPromotion(plan.code);
+                    setSelectedPackage(plan);
+                    setDepositorName("");
+                    setShowTransferModal(true);
                   }}
-                  disabled={loading || claimingCode === plan.code}
+                  disabled={loading}
                 >
-                  {claimingCode === plan.code ? (
-                    <>
-                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                      결제 진행 중...
-                    </>
-                  ) : (
-                    `${mounted ? plan.amount.toLocaleString("ko-KR") : "..."}원 결제하기`
-                  )}
+                  {mounted ? plan.amount.toLocaleString("ko-KR") : "..."}원 결제하기
                 </Button>
               </CardContent>
             </Card>
@@ -316,22 +340,101 @@ export default function CreditsPage() {
         </section>
       </div>
 
-      {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4">
+      {showTransferModal && selectedPackage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <div className="mb-6 space-y-2">
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">무통장 입금 신청</h2>
+              <p className="text-sm text-slate-500">아래 계좌로 입금해 주시면 확인 후 충전해 드립니다.</p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-5 space-y-4 mb-6">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">입금 은행</span>
+                <span className="font-bold text-slate-950">토스뱅크</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">계좌 번호</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-950">1002-5145-7186</span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText("1002-5145-7186");
+                      alert("계좌번호가 복사되었습니다.");
+                    }}
+                    className="text-[10px] bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded-md transition-colors"
+                  >
+                    복사
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">예금주</span>
+                <span className="font-bold text-slate-950">강필중(콜드부트(coldboot))</span>
+              </div>
+              <div className="border-t border-slate-200 pt-3 flex justify-between items-center">
+                <span className="text-sm font-bold text-slate-950">입금 금액</span>
+                <span className="text-lg font-black text-indigo-600">{selectedPackage.amount.toLocaleString()}원</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 ml-1">입금자명</label>
+                <input
+                  type="text"
+                  placeholder="실제 입금하실 성함을 입력해주세요"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm focus:border-indigo-500 focus:outline-none transition-all"
+                  value={depositorName}
+                  onChange={(e) => setDepositorName(e.target.value)}
+                />
+              </div>
+
+              <div className="rounded-xl bg-amber-50 p-3 text-[11px] text-amber-800 leading-relaxed break-keep">
+                ※ 입금이 완료된 후, 반드시 아래 <span className="font-bold underline">"입금 신청하기"</span> 버튼을 눌러주세요.<br />
+                ※ 입금자명이 다를 경우 확인이 지연될 수 있습니다.<br />
+                ※ 입금 확인은 영업일 기준 최대 24시간이 소요될 수 있습니다.
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" className="h-12 flex-1 rounded-xl" onClick={() => setShowTransferModal(false)}>
+                  취소
+                </Button>
+                <Button 
+                  className="h-12 flex-1 rounded-xl bg-slate-900 font-bold hover:bg-slate-800" 
+                  disabled={!depositorName.trim() || isSubmittingTransfer}
+                  onClick={requestTransfer}
+                >
+                  {isSubmittingTransfer ? (
+                    <>
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                      신청 중...
+                    </>
+                  ) : (
+                    "입금 신청하기"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-5">
               <CheckCircle2 className="h-8 w-8" />
             </div>
-            <div className="mt-5 text-center">
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">구매가 완료되었습니다. 지금 바로 이용하세요!</h2>
-              <p className="mt-2 text-sm text-slate-600">지급된 크레딧으로 기록 페이지에서 바로 이어서 확인할 수 있습니다.</p>
-            </div>
-            <div className="mt-6 flex gap-3">
-              <Button variant="outline" className="h-11 flex-1 rounded-xl" onClick={() => setShowSuccessModal(false)}>
-                닫기
-              </Button>
-              <Button className="h-11 flex-1 rounded-xl bg-slate-900 font-bold hover:bg-slate-800" onClick={() => router.push("/my-reports")}>
-                기록 페이지로 이동
+            <h2 className="text-2xl font-black tracking-tight text-slate-950">입금 신청이 완료되었습니다</h2>
+            <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+              성공적으로 신청되었습니다.<br />
+              입금이 확인되는 대로 이용권을 충전해 드립니다.<br />
+              (최대 24시간 소요)
+            </p>
+            <div className="mt-8">
+              <Button className="h-12 w-full rounded-xl bg-slate-900 font-bold hover:bg-slate-800" onClick={() => setShowSuccessModal(false)}>
+                확인
               </Button>
             </div>
           </div>

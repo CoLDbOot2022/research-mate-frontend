@@ -15,7 +15,8 @@ import {
   ChevronUp, 
   FileText, 
   FileCheck, 
-  ClipboardList 
+  ClipboardList,
+  CreditCard
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,17 @@ type AdminUser = {
   package_credits: PackageCredit[];
 };
 
+type AdminPaymentPending = {
+  id: number;
+  order_id: string;
+  order_name: string;
+  user_email: string;
+  amount: number;
+  credits_to_add: number;
+  depositor_name: string;
+  requested_at: string;
+};
+
 type InquiryMessage = {
   id: number;
   inquiry_id: number;
@@ -75,11 +87,13 @@ type AdjustResponse = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"users" | "inquiries" | "reports">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "inquiries" | "reports" | "payments">("users");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [reports, setReports] = useState<AdminReport[]>([]);
+  const [payments, setPayments] = useState<AdminPaymentPending[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
   
   const [adjustingKey, setAdjustingKey] = useState("");
   
@@ -105,14 +119,16 @@ export default function AdminPage() {
 
     const load = async () => {
       try {
-        const [userData, inquiryData, reportData] = await Promise.all([
+        const [userData, inquiryData, reportData, paymentData] = await Promise.all([
           api.get<AdminUser[]>("/admin/users"),
           api.get<Inquiry[]>("/admin/inquiries"),
           api.get<AdminReport[]>("/admin/reports/awaiting-review"),
+          api.get<AdminPaymentPending[]>("/admin/payments/pending"),
         ]);
         setUsers(userData);
         setInquiries(inquiryData);
         setReports(reportData);
+        setPayments(paymentData);
         track.adminDashboardViewed();
       } catch {
         setNotAuthorized(true);
@@ -210,6 +226,27 @@ export default function AdminPage() {
     }
   };
 
+  const approveTransfer = async (orderId: string) => {
+    if (!confirm("정말로 이 입금 건을 승인하시겠습니까?")) return;
+    
+    setApprovingId(orderId);
+    try {
+      await api.post(`/admin/payments/${orderId}/approve`);
+      alert("승인이 완료되었습니다.");
+      // Refresh both payments and users list
+      const [userData, paymentData] = await Promise.all([
+        api.get<AdminUser[]>("/admin/users"),
+        api.get<AdminPaymentPending[]>("/admin/payments/pending"),
+      ]);
+      setUsers(userData);
+      setPayments(paymentData);
+    } catch (err: any) {
+      alert(err?.detail || "승인 처리에 실패했습니다.");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   const getPackageBalance = (user: AdminUser, code: string) => {
     return user.package_credits.find((pc) => pc.package_code === code)?.credit_balance ?? 0;
   };
@@ -246,6 +283,12 @@ export default function AdminPage() {
               className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'reports' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <div className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> 리포트 감수 ({reports.length})</div>
+            </button>
+            <button 
+              onClick={() => setActiveTab("payments")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'payments' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <div className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> 입금 관리 ({payments.length})</div>
             </button>
           </div>
         </div>
@@ -439,7 +482,7 @@ export default function AdminPage() {
                ))
              )}
           </div>
-        ) : (
+        ) : activeTab === "reports" ? (
           <section id="reports-section">
             <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
               <CardHeader className="px-10 pt-10">
@@ -489,6 +532,63 @@ export default function AdminPage() {
                                >
                                  {report.status === "awaiting_review" ? "리뷰하기" : "보기"}
                                </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        ) : (
+          <section id="payments-section">
+            <Card className="rounded-[2.5rem] border-slate-200/70 shadow-xl overflow-hidden bg-white/90">
+              <CardHeader className="px-10 pt-10">
+                <CardTitle className="flex items-center gap-2 text-2xl font-black">
+                  <CreditCard className="w-6 h-6" /> 무통장 입금 승인 대기
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {payments.length === 0 ? (
+                  <div className="p-20 text-center text-slate-400 bg-slate-50/30 flex flex-col items-center justify-center">
+                    <CreditCard className="w-12 h-12 mb-4 opacity-20" />
+                    <p className="text-xl font-bold">대기 중인 입금 내역이 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/80 text-left">
+                          <th className="px-10 py-5 font-bold text-slate-600 uppercase tracking-wider">입금자명</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">신청 금액</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">사용자 이메일</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider">신청 일시</th>
+                          <th className="px-6 py-5 font-bold text-slate-600 uppercase tracking-wider text-center">승인</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {payments.map((p) => (
+                          <tr key={p.order_id} className="hover:bg-indigo-50/30 transition-colors">
+                            <td className="px-10 py-6">
+                              <span className="font-bold text-slate-900 text-base">{p.depositor_name}</span>
+                            </td>
+                            <td className="px-6 py-6 font-black text-indigo-600 text-base">
+                              {p.amount.toLocaleString()}원
+                            </td>
+                            <td className="px-6 py-6 text-slate-500">{p.user_email}</td>
+                            <td className="px-6 py-6 text-slate-500 text-xs font-mono">
+                              {mounted ? new Date(p.requested_at).toLocaleString("ko-KR") : ""}
+                            </td>
+                            <td className="px-6 py-6 text-center">
+                              <Button
+                                className="bg-indigo-600 hover:bg-indigo-700 rounded-2xl px-6 py-5 font-bold shadow-md transition-all active:scale-95"
+                                onClick={() => approveTransfer(p.order_id)}
+                                disabled={approvingId === p.order_id}
+                              >
+                                {approvingId === p.order_id ? <Loader2 className="w-4 h-4 animate-spin" /> : "승인하기"}
+                              </Button>
                             </td>
                           </tr>
                         ))}
