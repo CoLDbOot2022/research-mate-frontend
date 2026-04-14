@@ -74,10 +74,7 @@ export default function GuidePage() {
         
         {/* Navigation & Header */}
         <div className="space-y-8">
-          <Link href="/mentors" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold transition-colors group">
-            <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-            멘토진 페이지로 돌아가기
-          </Link>
+
           
           <div className="space-y-4">
             <h1 className="text-4xl font-black tracking-tight text-slate-900">
