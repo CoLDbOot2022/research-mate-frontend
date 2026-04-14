@@ -47,7 +47,16 @@ export default function LandingPage() {
                 수행평가부터 세특까지, 막막했던 주제 선정을 도와드립니다.
               </p>
               <div className="flex flex-wrap gap-3 pt-10">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 relative">
+                  <motion.div 
+                    initial={{ y: 0 }}
+                    animate={{ y: [-2, 0, -2] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-10 left-0 whitespace-nowrap bg-indigo-600 text-white text-[12px] font-black px-3 py-1.5 rounded-full shadow-md z-10"
+                  >
+                    커피 한 잔 가격으로 만드는 심화탐구 (3회 19,000원)
+                    <div className="absolute -bottom-1 left-6 w-2 h-2 bg-indigo-600 rotate-45" />
+                  </motion.div>
                   <Button size="lg" className="h-14 px-10 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg" onClick={() => { track.heroCtaClicked('get_topic'); router.push('/subject'); }}>
                     주제 추천받기
                   </Button>
@@ -156,9 +165,20 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold mb-6">지금 바로 나만의 주제를 찾아보세요</h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">입시 준비, 더 이상 혼자 고민하지 마세요. 세특연구소 커뮤니티가 함께합니다.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
-              주제 추천받기
-            </Button>
+            <div className="relative">
+              <motion.div 
+                initial={{ y: 0 }}
+                animate={{ y: [-2, 0, -2] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white text-blue-600 text-[12px] font-black px-3 py-1.5 rounded-full shadow-xl z-20 border-2 border-blue-50"
+              >
+                커피 한 잔 가격으로 만드는 심화탐구 (3회 19,000원)
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45 border-b-2 border-r-2 border-blue-50" />
+              </motion.div>
+              <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
+                주제 추천받기
+              </Button>
+            </div>
             <div className="relative">
               <motion.div 
                 initial={{ y: 0 }}
