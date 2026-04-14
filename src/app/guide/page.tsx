@@ -246,27 +246,7 @@ export default function GuidePage() {
           ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="pt-12">
-          <div className="bg-slate-900 rounded-[3.5rem] p-12 text-center space-y-8 shadow-2xl shadow-slate-200">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-black text-white">
-                지금 바로 첫 번째 탐구를 시작해보세요
-              </h2>
-              <p className="text-slate-400 font-medium">
-                회원가입 후 주제 추천부터 보고서 생성까지 원스톱으로 가능합니다.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-              <Link href="/subject">
-                <Button className="w-full sm:w-auto h-14 px-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg gap-2 shadow-lg shadow-indigo-900/20">
-                  탐구 시작하기
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+
 
       </div>
 
