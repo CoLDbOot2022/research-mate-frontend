@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, FileText, Plus } from "lucide-react";
+import { CalendarDays, FileText, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,6 +40,24 @@ export default function MyReportsPage() {
       if (showLoading) router.replace("/login?callback=/my-reports");
     } finally {
       if (showLoading) setLoading(false);
+    }
+  };
+  
+  const handleDelete = async (e: React.MouseEvent, reportId: string) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+    
+    if (!window.confirm("정말로 이 보고서를 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.")) {
+      return;
+    }
+    
+    try {
+      await api.delete(`/reports/${reportId}`);
+      // 로컬 상태에서 즉시 제거 (부드러운 사용자 경험)
+      setReports((prev) => prev.filter((r) => r.report_id !== reportId));
+      track.reportDeleted?.(reportId); // 분석 로그 (있는 경우)
+    } catch (err) {
+      console.error("Failed to delete report:", err);
+      alert("보고서 삭제에 실패했습니다.");
     }
   };
 
@@ -157,6 +175,16 @@ export default function MyReportsPage() {
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>
                         </div>
                       )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                       <button
+                         onClick={(e) => handleDelete(e, r.report_id)}
+                         className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                         title="삭제"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
                     </div>
                   </div>
 

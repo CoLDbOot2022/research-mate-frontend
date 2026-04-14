@@ -108,6 +108,12 @@ export function Header() {
           >
             Mentors
           </Link>
+          <Link
+            href="/guide"
+            className={`text-sm font-semibold transition-colors ${pathname === "/guide" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
+          >
+            이용가이드
+          </Link>
         </nav>
  
         {/* Spacer to push remaining items to the right */}
