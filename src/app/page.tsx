@@ -56,21 +56,21 @@ export default function LandingPage() {
                     (융합/경제수학 등 일부 과목 제외)
                   </p>
                 </div>
-                <div className="relative">
-                  <motion.div 
-                    initial={{ y: 0 }}
-                    animate={{ y: [-3, 0, -3] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-100/80 backdrop-blur-sm text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-blue-200 shadow-sm z-10"
-                  >
-                    가입 시 선착순 프리미엄 1회권 증정!
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-100/80 border-r border-b border-blue-200 rotate-45" />
-                  </motion.div>
-                  <Button size="lg" className="h-12 px-6 text-lg bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 font-bold flex items-center shadow-sm" onClick={() => { track.heroCtaClicked('open_chat'); window.open('https://open.kakao.com/o/gPm7rkbi', '_blank'); }}>
-                    <MessageCircle className="w-5 h-5 mr-2 fill-current" />
-                    연구소 오픈채팅방
-                  </Button>
-                </div>
+                  <div className="relative">
+                    <Button size="lg" className="h-12 px-6 text-lg bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 font-bold flex items-center shadow-sm" onClick={() => { track.heroCtaClicked('open_chat'); window.open('https://open.kakao.com/o/gPm7rkbi', '_blank'); }}>
+                      <MessageCircle className="w-5 h-5 mr-2 fill-current" />
+                      연구소 오픈채팅방
+                    </Button>
+                    <motion.div 
+                      initial={{ y: 0 }}
+                      animate={{ y: [3, 0, 3] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute top-full mt-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-100/90 backdrop-blur-sm text-blue-600 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-lg z-10"
+                    >
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-100/90 border-t border-l border-blue-200 rotate-45" />
+                      가입 시 선착순 프리미엄 1회권 증정!
+                    </motion.div>
+                  </div>
               </div>
 
             </div>

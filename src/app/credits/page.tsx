@@ -49,7 +49,7 @@ const FALLBACK_SUMMARY: PaymentSummary = {
   packages: [
     {
       code: "basic",
-      name: "기본 요금제",
+      name: "기본 요금제 (3회권)",
       description: "심화 탐구 보고서 생성 3회",
       credits: 3,
       amount: 19000,
@@ -61,7 +61,7 @@ const FALLBACK_SUMMARY: PaymentSummary = {
     },
     {
       code: "premium-review",
-      name: "프리미엄 검수 요금제",
+      name: "프리미엄 검수 요금제 (3회권)",
       description: "프리미엄 검수 포함 보고서 생성 3회",
       credits: 3,
       amount: 59000,
@@ -71,6 +71,7 @@ const FALLBACK_SUMMARY: PaymentSummary = {
       claim_count: 0,
       claim_remaining: 9999,
     },
+
   ],
 };
 
@@ -232,17 +233,18 @@ export default function CreditsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-                  <p className="text-xs text-slate-400 mb-1.5 font-medium">기본 요금제</p>
+                  <p className="text-xs text-slate-400 mb-1.5 font-medium">기본 요금제 (3회권)</p>
                   <p className="text-2xl font-black text-white">
                     {mounted && !loading ? `${summary?.packages.find(p => p.code === "basic")?.credit_balance ?? 0}회` : "..."}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-                  <p className="text-xs text-emerald-400 mb-1.5 font-bold">프리미엄 검수</p>
+                  <p className="text-xs text-emerald-400 mb-1.5 font-bold">프리미엄 검수 (3회권)</p>
                   <p className="text-2xl font-black text-emerald-400">
                     {mounted && !loading ? `${summary?.packages.find(p => p.code === "premium-review")?.credit_balance ?? 0}회` : "..."}
                   </p>
                 </div>
+
               </div>
 
               <div className="grid gap-2 text-sm text-slate-300 mt-1">
