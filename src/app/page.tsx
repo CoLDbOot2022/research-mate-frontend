@@ -157,7 +157,7 @@ export default function LandingPage() {
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">입시 준비, 더 이상 혼자 고민하지 마세요. 세특연구소 커뮤니티가 함께합니다.</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
-              무료로 주제 추천받기
+              주제 추천받기
             </Button>
             <div className="relative">
               <motion.div 
