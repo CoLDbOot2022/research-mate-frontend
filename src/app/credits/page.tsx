@@ -308,7 +308,7 @@ export default function CreditsPage() {
                 <div className="space-y-3 mb-4">
                   {[
                     plan.code === "premium-review" 
-                      ? `심화 탐구 보고서 생성 및 멘토 검수 ${plan.credits}회`
+                      ? `심화 탐구 보고서 생성 및 명문대 멘토의 검수 피드백 ${plan.credits}회`
                       : `심화 탐구 보고서 생성 ${plan.credits}회`,
                     "입금 확인 후 24시간 내 이용 가능",
                     "보유 이용권 유효기간 1년 (365일)",

@@ -221,10 +221,10 @@ export default function GuidePage() {
 
                 <div className="space-y-3 pt-4">
                   {[
-                    "심화 탐구 보고서 생성 및 멘토 검수 3회",
+                    "심화 탐구 보고서 생성 및 명문대 멘토의 검수 피드백 3회",
                     "입금 확인 후 24시간 내 이용 가능",
                     "보유 이용권 유효기간 1년 (365일)",
-                    "명문대 전공 멘토의 정밀 피드백 3회"
+                    "입금 내역 마이페이지에서 확인 가능"
                   ].map((item, i) => (
                     <div key={i} className="flex gap-3 text-sm text-slate-700 font-bold">
                       <div className="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
