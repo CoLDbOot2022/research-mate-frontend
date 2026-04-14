@@ -213,7 +213,7 @@ export default function CreditsPage() {
             <div className="space-y-4">
               <div className="space-y-3">
                 <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
-                  필요한 만큼 이용권을 선택하고 (3회권)
+                  필요한 만큼 이용권을 선택하고
                   <br />
                   바로 보고서 생성을 시작하세요
                 </h1>
