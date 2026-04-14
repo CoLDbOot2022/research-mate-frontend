@@ -165,20 +165,9 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold mb-6">지금 바로 나만의 주제를 찾아보세요</h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">입시 준비, 더 이상 혼자 고민하지 마세요. 세특연구소 커뮤니티가 함께합니다.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <div className="relative">
-              <motion.div 
-                initial={{ y: 0 }}
-                animate={{ y: [-3, 0, -3] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-indigo-600 text-white text-[12px] font-black px-3 py-1.5 rounded-xl shadow-lg z-20"
-              >
-                심화 탐구 보고서 생성 3회 19,000원
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-indigo-600 rotate-45" />
-              </motion.div>
-              <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
-                주제 추천받기
-              </Button>
-            </div>
+            <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
+              주제 추천받기
+            </Button>
             <div className="relative">
               <motion.div 
                 initial={{ y: 0 }}
