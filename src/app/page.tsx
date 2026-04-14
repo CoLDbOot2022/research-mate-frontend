@@ -50,12 +50,12 @@ export default function LandingPage() {
                 <div className="flex flex-col gap-2 relative">
                   <motion.div 
                     initial={{ y: 0 }}
-                    animate={{ y: [-2, 0, -2] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-10 left-0 whitespace-nowrap bg-indigo-600 text-white text-[12px] font-black px-3 py-1.5 rounded-full shadow-md z-10"
+                    animate={{ y: [-3, 0, -3] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-14 left-0 whitespace-nowrap bg-white text-slate-900 text-[13px] font-black px-4 py-2.5 rounded-2xl shadow-2xl z-20 border border-indigo-100 ring-4 ring-indigo-50/30"
                   >
-                    커피 한 잔 가격으로 만드는 심화탐구 (3회 19,000원)
-                    <div className="absolute -bottom-1 left-6 w-2 h-2 bg-indigo-600 rotate-45" />
+                    심화 탐구 보고서 생성 3회 <span className="text-indigo-600 ml-1">19,000원</span>
+                    <div className="absolute -bottom-1.5 left-8 w-3 h-3 bg-white rotate-45 border-r border-b border-indigo-100" />
                   </motion.div>
                   <Button size="lg" className="h-14 px-10 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg" onClick={() => { track.heroCtaClicked('get_topic'); router.push('/subject'); }}>
                     주제 추천받기
@@ -168,12 +168,12 @@ export default function LandingPage() {
             <div className="relative">
               <motion.div 
                 initial={{ y: 0 }}
-                animate={{ y: [-2, 0, -2] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white text-blue-600 text-[12px] font-black px-3 py-1.5 rounded-full shadow-xl z-20 border-2 border-blue-50"
+                animate={{ y: [-3, 0, -3] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-14 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white text-slate-900 text-[13px] font-black px-4 py-2.5 rounded-2xl shadow-2xl z-20 border border-indigo-100 ring-4 ring-indigo-50/30"
               >
-                커피 한 잔 가격으로 만드는 심화탐구 (3회 19,000원)
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45 border-b-2 border-r-2 border-blue-50" />
+                심화 탐구 보고서 생성 3회 <span className="text-indigo-600 ml-1">19,000원</span>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45 border-r border-b border-indigo-100" />
               </motion.div>
               <Button variant="secondary" size="lg" className="h-14 px-10 text-lg font-bold shadow-lg" onClick={() => { track.bottomCtaClicked('get_topic'); router.push('/subject'); }}>
                 주제 추천받기
