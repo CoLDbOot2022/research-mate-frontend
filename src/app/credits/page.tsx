@@ -307,9 +307,11 @@ export default function CreditsPage() {
 
                 <div className="space-y-3 mb-4">
                   {[
-                    `심화 탐구 첨삭 및 생성 튜터링 ${plan.credits}회 크레딧`,
+                    plan.code === "premium-review" 
+                      ? `심화 탐구 보고서 생성 및 멘토 검수 ${plan.credits}회`
+                      : `심화 탐구 보고서 생성 ${plan.credits}회`,
                     "입금 확인 후 24시간 내 이용 가능",
-                    "보유 크레딧 유효기간 1년 (365일)",
+                    "보유 이용권 유효기간 1년 (365일)",
                     "입금 내역 마이페이지에서 확인 가능",
                   ].map((item) => (
                     <div key={item} className="flex items-start gap-3 text-sm text-slate-700">
