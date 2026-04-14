@@ -65,11 +65,12 @@ export default function LandingPage() {
                       initial={{ y: 0 }}
                       animate={{ y: [3, 0, 3] }}
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute top-full mt-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-100/90 backdrop-blur-sm text-blue-600 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-lg z-10"
+                      className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-blue-100/90 backdrop-blur-sm text-blue-600 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-lg z-10"
                     >
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-100/90 border-t border-l border-blue-200 rotate-45" />
                       가입 시 선착순 프리미엄 1회권 증정!
                     </motion.div>
+
                   </div>
               </div>
 

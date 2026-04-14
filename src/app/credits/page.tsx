@@ -273,7 +273,7 @@ export default function CreditsPage() {
               <CardHeader className="space-y-4 px-7 pt-7 shrink-0">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <CardTitle className="text-2xl font-black tracking-tight text-slate-950">{plan.name}</CardTitle>
+                    <CardTitle className="text-2xl font-black tracking-tight text-slate-950">{plan.name} (3회권)</CardTitle>
                     <CardDescription className="mt-2 text-sm text-slate-500">{plan.description}</CardDescription>
                   </div>
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
