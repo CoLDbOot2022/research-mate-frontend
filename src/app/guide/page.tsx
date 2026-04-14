@@ -90,67 +90,8 @@ export default function GuidePage() {
           </div>
         </div>
 
-        {/* Vertical Steps Section */}
-        <div className="relative space-y-8">
-          {/* Connector Line */}
-          <div className="absolute left-[44px] top-8 bottom-8 w-1 bg-slate-100 rounded-full hidden md:block" />
-
-          {STEPS.map((step, idx) => (
-            <div key={idx} className="relative flex flex-col md:flex-row gap-8 group animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
-              {/* Icon Container */}
-              <div className={`relative z-10 w-22 h-22 md:w-24 md:h-24 shrink-0 rounded-[2.5rem] ${step.color} ${step.ring} ring-8 flex items-center justify-center shadow-sm transition-transform group-hover:scale-105`}>
-                {step.icon}
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-white border-2 border-slate-100 rounded-full flex items-center justify-center text-xs font-black text-slate-400 shadow-sm">
-                  {idx + 1}
-                </div>
-              </div>
-
-              {/* Content Container */}
-              <div className="flex-1 space-y-6 pt-2">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                      {step.title}
-                    </h3>
-                    {step.isPremium && (
-                      <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg uppercase tracking-wider ring-1 ring-indigo-100">
-                        PREMIUM ONLY
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-slate-600 leading-relaxed font-bold text-lg">
-                    {step.description}
-                  </p>
-                </div>
-
-                {/* Mockup Display */}
-                {step.mockupUrl && (
-                  <div className="relative">
-                    <div className="relative w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md">
-                      <Image
-                        src={step.mockupUrl}
-                        alt={`${step.title} mockup`}
-                        width={1200}
-                        height={800}
-                        className="w-full h-auto object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                
-                {idx < STEPS.length - 1 && (
-                  <div className="pt-4 md:hidden">
-                    <ArrowRight className="w-6 h-6 text-slate-200 mx-auto rotate-90" />
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-        
         {/* Pricing Table Section */}
-        <section className="pt-24 pb-12">
+        <section className="pt-8 pb-12">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl font-black tracking-tight text-slate-900">
               함께 선택하는 합리적인 요금제
@@ -238,6 +179,72 @@ export default function GuidePage() {
             </div>
           </div>
         </section>
+
+        <div className="border-t border-slate-100 w-full" />
+
+        {/* Vertical Steps Section */}
+        <div className="relative space-y-12">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl font-black tracking-tight text-slate-900">
+              세특연구소 서비스 이용 흐름
+            </h2>
+          </div>
+          {/* Connector Line */}
+          <div className="absolute left-[44px] top-32 bottom-8 w-1 bg-slate-100 rounded-full hidden md:block" />
+
+          {STEPS.map((step, idx) => (
+            <div key={idx} className="relative flex flex-col md:flex-row gap-8 group animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+              {/* Icon Container */}
+              <div className={`relative z-10 w-22 h-22 md:w-24 md:h-24 shrink-0 rounded-[2.5rem] ${step.color} ${step.ring} ring-8 flex items-center justify-center shadow-sm transition-transform group-hover:scale-105`}>
+                {step.icon}
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-white border-2 border-slate-100 rounded-full flex items-center justify-center text-xs font-black text-slate-400 shadow-sm">
+                  {idx + 1}
+                </div>
+              </div>
+
+              {/* Content Container */}
+              <div className="flex-1 space-y-6 pt-2">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                      {step.title}
+                    </h3>
+                    {step.isPremium && (
+                      <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg uppercase tracking-wider ring-1 ring-indigo-100">
+                        PREMIUM ONLY
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-slate-600 leading-relaxed font-bold text-lg">
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Mockup Display */}
+                {step.mockupUrl && (
+                  <div className="relative">
+                    <div className="relative w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md">
+                      <Image
+                        src={step.mockupUrl}
+                        alt={`${step.title} mockup`}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                
+                {idx < STEPS.length - 1 && (
+                  <div className="pt-4 md:hidden">
+                    <ArrowRight className="w-6 h-6 text-slate-200 mx-auto rotate-90" />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* CTA Section */}
         <div className="pt-12">
