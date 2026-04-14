@@ -715,6 +715,15 @@ function ReportPaper({
             <div className="prose prose-slate max-w-none focus:outline-none min-h-[500px] prose-h1:text-4xl prose-h1:font-black prose-h1:tracking-tight prose-h1:mb-2 prose-h2:text-2xl prose-p:leading-relaxed prose-headings:font-bold">
                 <div className="report-content-body">
                     {children}
+
+                    {/* AI Disclaimer Section */}
+                    <div className="mt-16 pt-8 border-t border-slate-100 text-[11px] text-slate-400 space-y-2 leading-relaxed bg-slate-50/50 p-6 rounded-2xl no-print">
+                      <p className="font-bold flex items-center gap-1.5 text-slate-500 mb-1 scale-105 origin-left">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500" /> 세특연구소 서비스 이용 안내
+                      </p>
+                      <p>• 본 보고서는 AI 기술을 기반으로 생성된 <strong className="text-slate-500">학습 보조용 '참고 초안'</strong>입니다. 인공지능 특성상 학술적·논리적 오류나 부정확한 데이터가 포함될 수 있으므로, 반드시 학생 본인이 내용을 비판적으로 검토하고 본인의 탐구 내용에 맞춰 수정하여 사용하시기 바랍니다.</p>
+                      <p>• 세특연구소는 제공된 정보의 정확성을 보증하지 않으며, 해당 정보를 그대로 제출하거나 사용하여 발생하는 학업적 불이익 또는 평가 결과에 대해 어떠한 법적 책임도 지지 않습니다.</p>
+                    </div>
                 </div>
             </div>
         </div>

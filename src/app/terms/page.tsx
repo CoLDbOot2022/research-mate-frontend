@@ -113,6 +113,21 @@ export default function TermsPage() {
                   </ul>
                 </div>
               </section>
+
+              <section>
+                <div className="flex items-start gap-4 mb-4">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-black text-sm">06</span>
+                  <h2 className="text-2xl font-black text-slate-900">AI 생성 결과물의 책임 및 한계</h2>
+                </div>
+                <div className="pl-12 space-y-4">
+                  <p>세특연구소의 모든 리포트 가이드는 인공지능(AI) 기술을 기반으로 생성되며, 서비스 이용 시 다음 사항에 동의한 것으로 간주합니다.</p>
+                  <ul className="space-y-3">
+                    <li className="flex gap-3"><span className="text-rose-400 font-bold">•</span> <span><strong>오류 가능성</strong>: AI 기술의 특성상 생성된 내용에 학술적·논리적 오류나 부적절한 표현이 포함될 수 있습니다.</span></li>
+                    <li className="flex gap-3"><span className="text-rose-400 font-bold">•</span> <span><strong>보조 용도 명시</strong>: 본 서비스는 학생의 자기주도적 탐구를 돕는 '보조 도구' 및 '참고용 초안'을 제공합니다. 제공된 내용을 그대로 제출하기보다는 반드시 이용자 본인이 비판적으로 검토하고 재구성하여야 합니다.</span></li>
+                    <li className="flex gap-3"><span className="text-rose-400 font-bold">•</span> <span><strong>면책 조항</strong>: 회사는 생성된 정보의 정확성이나 이를 활용하여 발생한 학업 성적, 입시 결과 등 어떠한 유무형의 손해나 불이익에 대해서도 법적 책임을 지지 않습니다.</span></li>
+                  </ul>
+                </div>
+              </section>
             </div>
             
             <footer className="pt-12 border-t border-slate-100 text-center">
