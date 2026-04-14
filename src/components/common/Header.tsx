@@ -112,7 +112,7 @@ export function Header() {
             href="/guide"
             className={`text-sm font-semibold transition-colors ${pathname === "/guide" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
           >
-            이용가이드
+            이용 가이드 및 가격 안내
           </Link>
         </nav>
  
