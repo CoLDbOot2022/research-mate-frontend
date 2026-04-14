@@ -20,28 +20,32 @@ const STEPS = [
     description: "관심 과목과 단원을 선택하고, 본인의 진로 키워드와 난이도를 입력하여 탐구의 방향성을 설정합니다.",
     icon: <CreditCard className="w-8 h-8" />,
     color: "bg-blue-50 text-blue-600",
-    ring: "ring-blue-100"
+    ring: "ring-blue-100",
+    mockupUrl: "/images/guide/step1.png"
   },
   {
     title: "실시간 주제 탐색 및 분석",
     description: "입력된 키워드를 바탕으로 AI가 교과 과정 연계성을 분석하고 최적의 탐구 후보군을 실시간으로 탐색합니다.",
     icon: <SearchCheck className="w-8 h-8" />,
     color: "bg-sky-50 text-sky-600",
-    ring: "ring-sky-100"
+    ring: "ring-sky-100",
+    mockupUrl: "/images/guide/step2.png"
   },
   {
     title: "최적의 탐구 주제 추천",
     description: "분석된 후보 중 학생의 생활기록부 경쟁력을 가장 높여줄 수 있는 단 하나의 정밀 주제를 제안받습니다.",
     icon: <Lightbulb className="w-8 h-8" />,
     color: "bg-amber-50 text-amber-600",
-    ring: "ring-amber-100"
+    ring: "ring-amber-100",
+    mockupUrl: "/images/guide/step3.png"
   },
   {
     title: "AI 보고서 초안 생성",
     description: "선정된 주제에 대해 Dual AI 시스템이 논리적인 구조와 학술적인 근거를 갖춘 고품질 초안을 생성합니다.",
     icon: <PenTool className="w-8 h-8" />,
     color: "bg-indigo-50 text-indigo-600",
-    ring: "ring-indigo-100"
+    ring: "ring-indigo-100",
+    mockupUrl: "/images/guide/step4.png"
   },
   {
     title: "전문 멘토 정밀 검수",
@@ -49,14 +53,16 @@ const STEPS = [
     icon: <SearchCheck className="w-8 h-8" />,
     color: "bg-emerald-50 text-emerald-600",
     ring: "ring-emerald-100",
-    isPremium: true
+    isPremium: true,
+    mockupUrl: "/images/guide/step5.png"
   },
   {
     title: "기록 페이지 및 파일 관리",
     description: "완성된 보고서를 확인하고 저장하거나, 생성된 모든 기록을 전용 페이지에서 안전하게 관리하고 삭제할 수 있습니다.",
     icon: <FileDown className="w-8 h-8" />,
     color: "bg-slate-50 text-slate-600",
-    ring: "ring-slate-100"
+    ring: "ring-slate-100",
+    mockupUrl: "/images/guide/step6.png"
   }
 ];
 
@@ -117,6 +123,20 @@ export default function GuidePage() {
                   </p>
                 </div>
 
+                {/* Mockup Display */}
+                {step.mockupUrl && (
+                  <div className="relative">
+                    <div className="relative w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md">
+                      <Image
+                        src={step.mockupUrl}
+                        alt={`${step.title} mockup`}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 
                 {idx < STEPS.length - 1 && (
