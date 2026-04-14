@@ -90,6 +90,10 @@ export const track = {
   reportCardClicked: (props: { report_id: string; status: string }) => {
     t("Report Card Clicked", props);
   },
+  reportDeleted: (report_id: string) => {
+    t("Report Deleted", { report_id });
+  },
+
 
   // ── Credits / Payment Page (크레딧) ────────────────────────────────────
   creditsPageViewed: () => {
