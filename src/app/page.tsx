@@ -62,7 +62,7 @@ export default function LandingPage() {
                     연구소 오픈채팅방
                   </Button>
                   <p className="text-[11px] text-blue-600 ml-1 font-bold italic opacity-90 leading-tight">
-                    🎁 가입 시 선착순 프리미엄 1회권 증정!
+                    🎁 가입 시 선착순 기본 요금제 1회권 증정!
                   </p>
                 </div>
 
@@ -167,8 +167,9 @@ export default function LandingPage() {
                 className="absolute top-full mt-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/95 backdrop-blur-sm text-blue-600 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-white shadow-lg z-10"
               >
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white/95 rotate-45 shadow-[-1px_-1px_1px_rgba(0,0,0,0.05)]" />
-                가입 시 선착순 프리미엄 1회권 증정!
+                가입 시 선착순 기본 요금제 1회권 증정!
               </motion.div>
+
               <Button size="lg" className="h-14 px-8 text-lg font-bold bg-[#FEE500] text-[#371D1E] hover:bg-[#FDD800] border-0 flex items-center shadow-lg" onClick={() => { track.bottomCtaClicked('open_chat'); window.open('https://open.kakao.com/o/gPm7rkbi', '_blank'); }}>
                 <MessageCircle className="w-6 h-6 mr-2 fill-current" />
                 연구소 오픈채팅방
