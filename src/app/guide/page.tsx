@@ -148,6 +148,96 @@ export default function GuidePage() {
             </div>
           ))}
         </div>
+        
+        {/* Pricing Table Section */}
+        <section className="pt-24 pb-12">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-3xl font-black tracking-tight text-slate-900">
+              함께 선택하는 합리적인 요금제
+            </h2>
+            <p className="text-slate-500 font-bold max-w-lg mx-auto leading-relaxed">
+              탐구 보고서 가이드부터 멘토링까지, <br />
+              본인에게 꼭 필요한 서비스를 선택해보세요.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Basic Plan */}
+            <div className="relative group overflow-hidden bg-white rounded-[2.5rem] border border-slate-200 p-10 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
+              <div className="space-y-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">기본 요금제 (3회권)</h4>
+                    <p className="text-slate-400 text-sm font-bold">심화 탐구 보고서 생성 3회</p>
+                  </div>
+                  <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-3 py-1.5 rounded-full ring-1 ring-slate-200">
+                    입문용
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-slate-900">19,000원</span>
+                  <span className="text-slate-400 text-sm line-through">49,000원</span>
+                </div>
+
+                <div className="space-y-3 pt-4">
+                  {[
+                    "심화 탐구 보고서 생성 3회",
+                    "입금 확인 후 24시간 내 이용 가능",
+                    "보유 이용권 유효기간 1년 (365일)",
+                    "입금 내역 마이페이지에서 확인 가능"
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-3 text-sm text-slate-700 font-bold">
+                      <div className="w-5 h-5 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                        <ArrowRight className="w-3 h-3 text-slate-400" />
+                      </div>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="relative group overflow-hidden bg-white rounded-[2.5rem] border-2 border-indigo-100 p-10 shadow-indigo-100 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-100 hover:-translate-y-1 flex flex-col h-full">
+              <div className="absolute top-0 right-0 px-6 py-2 bg-indigo-600 text-white text-[11px] font-black rounded-bl-3xl">
+                MOST POPULAR
+              </div>
+              <div className="space-y-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-xl font-black text-indigo-600 mb-1">프리미엄 검수 요금제 (3회권)</h4>
+                    <p className="text-indigo-400 text-sm font-bold">프리미엄 검수 및 피드백 포함</p>
+                  </div>
+                  <span className="bg-indigo-50 text-indigo-600 text-[10px] font-black px-3 py-1.5 rounded-full ring-1 ring-indigo-100">
+                    추천
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-slate-900">59,000원</span>
+                  <span className="text-slate-400 text-sm line-through">159,000원</span>
+                </div>
+
+                <div className="space-y-3 pt-4">
+                  {[
+                    "심화 탐구 보고서 생성 및 멘토 검수 3회",
+                    "입금 확인 후 24시간 내 이용 가능",
+                    "보유 이용권 유효기간 1년 (365일)",
+                    "명문대 전공 멘토의 정밀 피드백 3회"
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-3 text-sm text-slate-700 font-bold">
+                      <div className="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                        <ArrowRight className="w-3 h-3 text-indigo-500" />
+                      </div>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* CTA Section */}
         <div className="pt-12">
