@@ -47,6 +47,7 @@ function TopicConfirmContent() {
       unit_small: searchParams.get("unit_small") || null,
       career: searchParams.get("career") ?? "",
       difficulty: Number(searchParams.get("difficulty") ?? "60"),
+      report_type: searchParams.get("report_type") ?? "general",
       mode: searchParams.get("mode") ?? "new",
     };
   }, [searchParams]);
