@@ -44,6 +44,7 @@ type ReportResponse = {
   rejection_logs: RejectionLog[] | null;
   original_content: ReportContent | null;
   mentor_reviewed_at: string | null;
+  is_expired?: boolean;
 };
 
 // sectionDefs was removed as reports now use a unified HTML format.
@@ -188,7 +189,11 @@ export default function ReportDetailPage() {
         }
       } catch (e) {
         console.error(e);
-        router.replace(`/login?callback=/report/${reportId}`);
+        if ((e as any)?.response?.status === 403) {
+            setReport({ ...report, is_expired: true } as any);
+        } else {
+            router.replace(`/login?callback=/report/${reportId}`);
+        }
         setLoading(false);
       }
     };
@@ -411,6 +416,31 @@ export default function ReportDetailPage() {
         <div className="text-center space-y-2">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-300" />
           <p className="text-sm">보고서를 찾을 수 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (report.is_expired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-md w-full bg-white rounded-[2.5rem] border border-slate-200 p-12 text-center space-y-6 shadow-sm">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
+            <X className="w-10 h-10 text-slate-400" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-slate-900">열람 기간 만료</h2>
+            <p className="text-slate-500 font-medium leading-relaxed">
+              본 보고서는 생성 후 7일이 경과하여 <br />
+              더 이상 열람할 수 없습니다.
+            </p>
+          </div>
+          <Button 
+            className="w-full bg-slate-900 hover:bg-slate-950 text-white font-bold h-12 rounded-2xl"
+            onClick={() => router.push("/my-reports")}
+          >
+            목록으로 돌아가기
+          </Button>
         </div>
       </div>
     );

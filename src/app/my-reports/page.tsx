@@ -21,6 +21,7 @@ type ReportItem = {
   progress?: number;
   phase?: string;
   status_message?: string;
+  is_expired?: boolean;
 };
 
 export default function MyReportsPage() {
@@ -90,7 +91,7 @@ export default function MyReportsPage() {
         <div className="rounded-3xl border bg-white/80 backdrop-blur p-8 shadow-sm flex flex-wrap justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black tracking-tight mb-2">기록 페이지</h1>
-            <p className="text-slate-600">생성한 보고서를 다시 열고 수정/검토할 수 있습니다.</p>
+            <p className="text-slate-600">생성한 보고서를 다시 열고 수정/검토할 수 있습니다. (생성 후 7일간 열람 가능)</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">완료 보고서 {completedCount}개</span>
@@ -115,8 +116,10 @@ export default function MyReportsPage() {
             {reports.map((r) => (
               <Card
                 key={r.report_id}
-                className={`rounded-2xl border-slate-200/70 shadow-sm transition-all cursor-pointer hover:shadow-md`}
-                onClick={() => router.push(`/report/${r.report_id}`)}
+                className={`rounded-2xl border-slate-200/70 shadow-sm transition-all ${
+                  r.is_expired ? "opacity-60 cursor-not-allowed bg-slate-50" : "cursor-pointer hover:shadow-md bg-white"
+                }`}
+                onClick={() => !r.is_expired && router.push(`/report/${r.report_id}`)}
               >
                 <CardContent className="p-5 flex flex-col gap-4">
                   <div className="flex items-center justify-between gap-4">
@@ -173,6 +176,11 @@ export default function MyReportsPage() {
                       ) : (
                         <div className="flex flex-col items-end gap-1">
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>
+                        </div>
+                      )}
+                      {r.is_expired && (
+                        <div className="mt-1">
+                          <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 text-[10px] font-black uppercase">기간 만료</span>
                         </div>
                       )}
                     </div>
