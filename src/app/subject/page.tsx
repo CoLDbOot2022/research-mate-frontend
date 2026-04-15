@@ -121,6 +121,10 @@ export default function SubjectPage() {
       alert("난이도를 선택해주세요.");
       return;
     }
+    if (!career.trim()) {
+      alert("진로 또는 관심사를 입력해주세요.");
+      return;
+    }
     if (!reportType) {
       alert("리포트 종류를 선택해주세요.");
       return;
@@ -304,7 +308,7 @@ export default function SubjectPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>진로 또는 관심사</Label>
+                <Label>진로 또는 관심사 (필수)</Label>
                 <p className="text-[11px] text-slate-500 font-medium">진로 키워드나 구체적인 관심사를 적을수록 더 정밀한 주제가 추천됩니다.</p>
                 <Input
                   value={career}
