@@ -123,7 +123,7 @@ export default function MyReportsPage() {
               >
                 <CardContent className="p-5 flex flex-col gap-4">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className={`p-2 rounded-lg ${r.status === "generating" ? "bg-amber-100 text-amber-700 animate-pulse" : "bg-slate-100 text-slate-700"}`}>
                         <FileText className="w-4 h-4" />
                       </div>
@@ -153,46 +153,48 @@ export default function MyReportsPage() {
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      {r.status === "completed" ? (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase">완료</span>
-                          {r.is_bookmarked && <span className="text-amber-500 text-xs font-semibold">★ 북마크됨</span>}
-                        </div>
-                      ) : r.status === "failed" ? (
-                        <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase">실패</span>
-                      ) : r.status === "topic_generated" ? (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">주제 선정 완료</span>
-                        </div>
-                      ) : r.status === "awaiting_review" ? (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase whitespace-nowrap">검수 대기중</span>
-                        </div>
-                      ) : r.status === "review_confirmed" ? (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">멘토 리뷰 완료</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>
-                        </div>
-                      )}
-                      {r.is_expired && (
-                        <div className="mt-1">
-                          <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 text-[10px] font-black uppercase">기간 만료</span>
-                        </div>
-                      )}
-                    </div>
+                    <div className="flex items-center gap-6 shrink-0">
+                      <div className="text-right">
+                        {r.status === "completed" ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase">완료</span>
+                            {r.is_bookmarked && <span className="text-amber-500 text-xs font-semibold">★ 북마크됨</span>}
+                          </div>
+                        ) : r.status === "failed" ? (
+                          <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase">실패</span>
+                        ) : r.status === "topic_generated" ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase">주제 선정 완료</span>
+                          </div>
+                        ) : r.status === "awaiting_review" ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase whitespace-nowrap">검수 대기중</span>
+                          </div>
+                        ) : r.status === "review_confirmed" ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white px-3 py-1 rounded-full text-[11px] font-black uppercase whitespace-nowrap">멘토 리뷰 완료</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase animate-pulse">생성 중</span>
+                          </div>
+                        )}
+                        {r.is_expired && (
+                          <div className="mt-1">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 text-[10px] font-black uppercase">기간 만료</span>
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="flex items-center gap-2">
-                       <button
-                         onClick={(e) => handleDelete(e, r.report_id)}
-                         className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                         title="삭제"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
+                      <div className="flex items-center gap-2">
+                         <button
+                           onClick={(e) => handleDelete(e, r.report_id)}
+                           className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                           title="삭제"
+                         >
+                           <Trash2 className="w-4 h-4" />
+                         </button>
+                      </div>
                     </div>
                   </div>
 
