@@ -113,6 +113,10 @@ export default function SubjectPage() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (large === NONE_VALUE) {
+      alert("대단원을 선택해주세요.");
+      return;
+    }
     if (!difficulty) {
       alert("난이도를 선택해주세요.");
       return;
@@ -184,7 +188,7 @@ export default function SubjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>대단원 (선택)</Label>
+                <Label>대단원 (필수)</Label>
                 <div className="relative">
                   <Select
                     value={large}
@@ -304,7 +308,7 @@ export default function SubjectPage() {
                 <Input
                   value={career}
                   onChange={(e) => setCareer(e.target.value)}
-                  placeholder="예: 금융공학, 의공학, 산업수학"
+                  placeholder="예: 금융공학, 자율주행, 친환경에너지"
                   className="bg-slate-50"
                 />
               </div>
