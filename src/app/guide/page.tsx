@@ -58,7 +58,7 @@ const STEPS = [
   },
   {
     title: "기록 페이지 및 파일 관리",
-    description: "완성된 보고서를 확인 및 수정하고 pdf/word 파일로 저장할 수 있습니다. 생성된 모든 기록은 전용 페이지에서 안전하게 관리됩니다.",
+    description: "완성된 보고서를 확인하고 pdf/word로 저장할 수 있습니다. 생성된 모든 기록은 안전하게 관리됩니다.",
     icon: <FileDown className="w-8 h-8" />,
     color: "bg-slate-50 text-slate-600",
     ring: "ring-slate-100",
