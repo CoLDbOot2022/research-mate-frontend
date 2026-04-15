@@ -96,6 +96,7 @@ export default function TermsPage() {
                 <div className="pl-12">
                   <ul className="space-y-3">
                     <li className="flex gap-3"><span className="text-indigo-400 font-bold">•</span> <span><strong>이용 기간</strong>: 모든 상품의 유효기간은 구매일로부터 1년(365일)입니다.</span></li>
+                    <li className="flex gap-3"><span className="text-indigo-400 font-bold">•</span> <span><strong>보고서 열람 및 보관</strong>: 생성된 모든 보고서의 온라인 재열람 및 수정 권한은 해당 보고서 생성일로부터 1년(365일)간 유지됩니다. 기간 만료 후에는 보안 및 데이터 관리 정책에 따라 해당 보고서에 대한 접근이 영구적으로 차단되므로, 필요한 결과물은 반드시 만료 전에 PDF 또는 워드 파일로 저장하여야 합니다.</span></li>
                     <li className="flex gap-3"><span className="text-indigo-400 font-bold">•</span> <span><strong>권리 소멸</strong>: 구매 후 1년이 경과하면 잔여 생성권과 자동으로 연계되는 멘토 매칭 권한은 모두 소멸됩니다. 유효기간 만료로 인한 소멸 시에는 미사용 회차에 대한 환불이나 이월이 지원되지 않습니다.</span></li>
                   </ul>
                 </div>
