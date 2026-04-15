@@ -352,7 +352,7 @@ export default function SubjectPage() {
                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />추천 준비 중...</> : reportType ? "주제 추천받기" : "리포트 종류를 선택해주세요"}
              </Button>
              <p className="text-center text-[11px] text-slate-400 font-medium">
-               * 주제 추천 시 선택하신 리포트 이용권 1회가 즉시 차감됩니다.
+               * &apos;주제 추천받기&apos; 버튼 클릭 시 선택하신 리포트 이용권 1회가 즉시 차감됩니다.
              </p>
           </div>
         </form>
