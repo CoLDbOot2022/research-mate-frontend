@@ -91,7 +91,7 @@ export default function MyReportsPage() {
         <div className="rounded-3xl border bg-white/80 backdrop-blur p-8 shadow-sm flex flex-wrap justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black tracking-tight mb-2">기록 페이지</h1>
-            <p className="text-slate-600">생성한 보고서를 다시 열고 수정/검토할 수 있습니다. (생성 후 10분간 열람 가능)</p>
+            <p className="text-slate-600 text-sm">생성한 보고서를 다시 열고 수정/검토할 수 있습니다. <span className="text-[10px] text-slate-400 font-normal ml-1">(생성 후 1년 간 열람 가능)</span></p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">완료 보고서 {completedCount}개</span>
