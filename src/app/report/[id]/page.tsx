@@ -431,7 +431,7 @@ export default function ReportDetailPage() {
           <div className="space-y-2">
             <h2 className="text-2xl font-black text-slate-900">열람 기간 만료</h2>
             <p className="text-slate-500 font-medium leading-relaxed">
-              본 보고서는 생성 후 7일이 경과하여 <br />
+              본 보고서는 생성 후 5분이 경과하여 <br />
               더 이상 열람할 수 없습니다.
             </p>
           </div>
