@@ -137,12 +137,25 @@ export function Header() {
         <div className="flex-grow" />
  
         {/* Actions Container (Right-aligned) */}
-        <div className="flex items-center space-x-2 md:space-x-8">
-          <div className="flex items-center space-x-2">
-            {/* PC: Action Links (Only on Desktop) */}
+        <div className="flex items-center space-x-2 md:space-x-8 flex-nowrap shrink-0">
+          {/* Mobile Menu Button - Moved to the front for better visibility */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex md:hidden p-2 text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-all active:scale-95 relative z-50 items-center justify-center border border-slate-200 bg-white shadow-sm shrink-0"
+            aria-label="메뉴 열기"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5 text-slate-900" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </button>
+
+          <div className="flex items-center space-x-1 md:space-x-3">
+            {/* PC: My Reports & Subject Links */}
             <Link
               href="/subject"
-              className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-6`}
+              className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-3`}
             >
               주제 추천
             </Link>
@@ -150,7 +163,7 @@ export function Header() {
             {me && (
               <Link
                 href="/my-reports"
-                className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-4`}
+                className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-2`}
               >
                 기록 페이지
               </Link>
@@ -161,7 +174,7 @@ export function Header() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 rounded-full border-slate-200 px-3 flex items-center gap-1 bg-white"
+                  className="h-10 rounded-full border-slate-200 px-3 flex items-center gap-1 bg-white shadow-sm"
                   onClick={() => setIsMenuOpen((prev) => !prev)}
                 >
                   <UserRound className="w-4 h-4" />
@@ -239,24 +252,11 @@ export function Header() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1 ring-1 ring-slate-100/50 p-0.5 rounded-full bg-slate-50/50">
-                <Button variant="ghost" size="sm" className="h-8 text-[11px] md:text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white rounded-full px-2 md:px-4" onClick={() => router.push("/login")}>로그인</Button>
-                <Button size="sm" className="h-8 text-[11px] md:text-sm bg-blue-600 hover:bg-blue-700 font-bold px-2.5 md:px-5 rounded-full shadow-sm" onClick={() => router.push("/register")}>회원가입</Button>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button variant="ghost" size="sm" className="h-8 text-[11px] md:text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white rounded-full px-2" onClick={() => router.push("/login")}>로그인</Button>
+                <Button size="sm" className="h-8 text-[11px] md:text-sm bg-blue-600 hover:bg-blue-700 font-bold px-2.5 rounded-full shadow-sm" onClick={() => router.push("/register")}>회원가입</Button>
               </div>
             )}
-
-            {/* Mobile: Hamburger Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 md:hidden text-slate-600 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-transform active:scale-95 relative z-50 flex items-center justify-center border border-slate-100 bg-white shadow-sm ml-1"
-              aria-label="메뉴 열기"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5 text-slate-900" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
           </div>
         </div>
       </div>
