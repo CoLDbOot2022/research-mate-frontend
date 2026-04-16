@@ -119,7 +119,14 @@ export default function MyReportsPage() {
                 className={`rounded-2xl border-slate-200/70 shadow-sm transition-all ${
                   r.is_expired ? "opacity-60 cursor-not-allowed bg-slate-50" : "cursor-pointer hover:shadow-md bg-white"
                 }`}
-                onClick={() => !r.is_expired && router.push(`/report/${r.report_id}`)}
+                onClick={() => {
+                  if (r.is_expired) return;
+                  if (r.status === "topic_generated") {
+                    router.push(`/topic-confirm?report_id=${r.report_id}&report_type=${r.report_type || "general"}&mode=existing`);
+                  } else {
+                    router.push(`/report/${r.report_id}`);
+                  }
+                }}
               >
                 <CardContent className="p-5 flex flex-col gap-4">
                   <div className="flex items-center justify-between gap-4">

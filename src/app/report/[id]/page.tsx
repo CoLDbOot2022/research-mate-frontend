@@ -187,12 +187,13 @@ export default function ReportDetailPage() {
             setLoading(false);
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
-        if ((e as any)?.response?.status === 403) {
+        if (e && typeof e === 'object' && e.response?.status === 403) {
             setReport({ ...report, is_expired: true } as any);
         } else {
-            router.replace(`/login?callback=/report/${reportId}`);
+            const msg = typeof e === 'string' ? e : (e.message || "데이터를 불러오는 중 오류가 발생했습니다.");
+            alert(msg);
         }
         setLoading(false);
       }

@@ -68,28 +68,46 @@ function TopicConfirmContent() {
   }, [loading]);
 
   const fetchTopic = useCallback(async () => {
+    const mode = searchParams.get("mode");
+    const reportId = searchParams.get("report_id");
+
     setLoading(true);
     try {
-      const body = getRequestBody();
-      const res = await api.post<Topic[]>("/topics/recommend", body);
-      const selected = res[0] ?? null;
-      setTopic(selected);
-      if (selected) {
-        track.topicRecommended({
-          topic_title: selected.title,
-          difficulty: selected.difficulty,
-          tags: selected.tags,
+      if (mode === "existing" && reportId) {
+        const res = await api.get<any>(`/reports/${reportId}`);
+        const content = res.content || {};
+        setTopic({
+          topic_id: res.topic_id,
+          report_id: res.report_id,
+          title: res.title,
+          reasoning: content.reasoning || "",
+          description: content.description || "",
+          tags: content.tags || [],
+          difficulty: String(content.difficulty || "60"),
+          related_subjects: content.related_subjects || [],
         });
+      } else {
+        const body = getRequestBody();
+        const res = await api.post<Topic[]>("/topics/recommend", body);
+        const selected = res[0] ?? null;
+        setTopic(selected);
+        if (selected) {
+          track.topicRecommended({
+            topic_title: selected.title,
+            difficulty: selected.difficulty,
+            tags: selected.tags,
+          });
+        }
       }
     } catch (e: any) {
       console.error(e);
       setTopic(null);
-      const msg = typeof e === 'string' ? e : (e.message || "주제 추천에 실패했습니다.");
+      const msg = typeof e === 'string' ? e : (e.message || "주제 추천 정보를 불러오는데 실패했습니다.");
       alert(msg);
     } finally {
       setLoading(false);
     }
-  }, [getRequestBody]);
+  }, [getRequestBody, searchParams]);
 
   useEffect(() => {
     fetchTopic().catch(console.error);
@@ -119,6 +137,16 @@ function TopicConfirmContent() {
   };
 
   if (loading) {
+    if (searchParams.get("mode") === "existing") {
+      return (
+        <div className="min-h-screen bg-[linear-gradient(135deg,#f8fafc_0%,#fff7ed_45%,#eef2ff_100%)] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+             <RefreshCcw className="w-8 h-8 text-slate-400 animate-spin" />
+             <p className="text-sm font-medium text-slate-500">주제 정보를 불러오는 중입니다...</p>
+          </div>
+        </div>
+      );
+    }
     const progress = 100 * (1 - Math.pow(0.1, elapsedMs / 10000));
     const currentPhase = 
       progress < 25 ? "입력 분석" :
