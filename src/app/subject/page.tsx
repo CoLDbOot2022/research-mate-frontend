@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { BookOpenText, Loader2, Sparkles, Target } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ type PaymentSummary = {
 
 export default function SubjectPage() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [subjects, setSubjects] = useState<string[]>([]);
   const [units, setUnits] = useState<UnitLarge[]>([]);
@@ -97,7 +98,7 @@ export default function SubjectPage() {
     };
 
     load().catch(() => setPackageCredits({}));
-  }, []);
+  }, [pathname]);
 
   const mediumOptions = useMemo(() => {
     if (large === NONE_VALUE) return [];
