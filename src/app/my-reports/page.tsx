@@ -121,7 +121,10 @@ export default function MyReportsPage() {
                 }`}
                 onClick={() => {
                   if (r.is_expired) return;
-                  if (r.status === "topic_generated") {
+                  // If topic_id is missing, it is still in the topic selection/generation phase.
+                  const isTopicPhase = !r.topic_id || r.status === "topic_generated";
+                  
+                  if (isTopicPhase) {
                     router.push(`/topic-confirm?report_id=${r.report_id}&report_type=${r.report_type || "general"}&mode=existing`);
                   } else {
                     router.push(`/report/${r.report_id}`);
