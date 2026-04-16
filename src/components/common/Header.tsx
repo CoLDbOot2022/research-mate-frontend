@@ -260,26 +260,6 @@ export function Header() {
                   </Link>
                 )}
               </div>
-
-              <div className="pt-4 border-t border-slate-100">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" className="rounded-2xl h-12 text-sm font-bold border-slate-200" onClick={() => { setIsMobileMenuOpen(false); router.push("/support"); }}>
-                    문의하기
-                  </Button>
-                  {me ? (
-                    <Button variant="outline" className="rounded-2xl h-12 text-sm font-bold border-rose-100 text-rose-600 hover:bg-rose-50" onClick={logout}>
-                      로그아웃
-                    </Button>
-                  ) : (
-                    <Button className="rounded-2xl h-12 text-sm font-bold bg-slate-900" onClick={() => { setIsMobileMenuOpen(false); router.push("/login"); }}>
-                      로그인
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <div className="mt-4 pb-2 text-center">
-                <p className="text-[10px] text-slate-400">© 2024 세특연구소</p>
-              </div>
             </div>
           </div>
         </div>
