@@ -160,7 +160,7 @@ export function Header() {
           </div>
 
           {/* Vertical Separator - Clear distinction between service and auth */}
-          <div className="hidden md:block h-6 w-[1px] bg-slate-300 shrink-0 mx-2" />
+          <div className="hidden md:block h-6 w-[1px] bg-slate-200 shrink-0" />
 
           <div className="flex items-center space-x-2 md:space-x-4">
             {me ? (
@@ -285,6 +285,14 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/subject"
+                className={`block px-4 py-4 rounded-2xl text-xl font-bold transition-all ${
+                  pathname === "/subject" ? "bg-blue-50 text-blue-900" : "text-slate-800 hover:bg-slate-50"
+                }`}
+              >
+                주제 추천받기
+              </Link>
               {me && (
                 <Link
                   href="/my-reports"
