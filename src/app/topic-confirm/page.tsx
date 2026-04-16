@@ -81,9 +81,11 @@ function TopicConfirmContent() {
           tags: selected.tags,
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setTopic(null);
+      const msg = e.response?.data?.detail || "주제 추천에 실패했습니다.";
+      alert(msg);
     } finally {
       setLoading(false);
     }
