@@ -220,58 +220,66 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay - Moved outside for better stacking */}
+      {/* Mobile Menu Dropdown - PC User Menu style but for mobile */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] bg-white md:hidden overflow-y-auto">
-          <div className="flex flex-col pt-24 px-6 pb-12">
-            <div className="space-y-1 mb-8">
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest px-4 mb-3">Service Menu</p>
-              {navLinks.map((link) => (
+        <div className="absolute top-[65px] left-4 right-4 z-[100] md:hidden">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex flex-col p-4">
+              <div className="space-y-1 mb-4">
+                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest px-3 mb-2 underline underline-offset-4 decoration-blue-200">Service Menu</p>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`block px-4 py-3 rounded-2xl text-lg font-bold transition-all ${
+                      pathname === link.href ? "bg-blue-50 text-blue-900" : "text-slate-800 hover:bg-slate-50"
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
                 <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`block px-4 py-4 rounded-2xl text-xl font-bold ${pathname === link.href ? "bg-blue-50 text-blue-900" : "text-slate-800"}`}
+                  href="/subject"
+                  className={`block px-4 py-3 rounded-2xl text-lg font-bold transition-all ${
+                    pathname === "/subject" ? "bg-blue-50 text-blue-900" : "text-slate-800 hover:bg-slate-50"
+                  }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {link.label}
+                  주제 추천받기
                 </Link>
-              ))}
-              <Link
-                href="/subject"
-                className={`block px-4 py-4 rounded-2xl text-xl font-bold ${pathname === "/subject" ? "bg-blue-50 text-blue-900" : "text-slate-800"}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                주제 추천받기
-              </Link>
-              {me && (
-                <Link
-                  href="/my-reports"
-                  className={`block px-4 py-4 rounded-2xl text-xl font-bold ${pathname === "/my-reports" ? "bg-blue-50 text-blue-900" : "text-slate-800"}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  기록 페이지
-                </Link>
-              )}
-            </div>
-
-            <div className="mt-auto pt-8 border-t border-slate-100">
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="rounded-2xl h-14 font-bold border-slate-200" onClick={() => { setIsMobileMenuOpen(false); router.push("/support"); }}>
-                  문의하기
-                </Button>
-                {me ? (
-                  <Button variant="outline" className="rounded-2xl h-14 font-bold border-rose-100 text-rose-600 hover:bg-rose-50" onClick={logout}>
-                    로그아웃
-                  </Button>
-                ) : (
-                  <Button className="rounded-2xl h-14 font-bold bg-slate-900" onClick={() => { setIsMobileMenuOpen(false); router.push("/login"); }}>
-                    로그인
-                  </Button>
+                {me && (
+                  <Link
+                    href="/my-reports"
+                    className={`block px-4 py-3 rounded-2xl text-lg font-bold transition-all ${
+                      pathname === "/my-reports" ? "bg-blue-50 text-blue-900" : "text-slate-800 hover:bg-slate-50"
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    기록 페이지
+                  </Link>
                 )}
               </div>
-            </div>
-            <div className="mt-8 text-center px-4">
-              <p className="text-sm text-slate-400">© 2024 세특연구소. All rights reserved.</p>
+
+              <div className="pt-4 border-t border-slate-100">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" className="rounded-2xl h-12 text-sm font-bold border-slate-200" onClick={() => { setIsMobileMenuOpen(false); router.push("/support"); }}>
+                    문의하기
+                  </Button>
+                  {me ? (
+                    <Button variant="outline" className="rounded-2xl h-12 text-sm font-bold border-rose-100 text-rose-600 hover:bg-rose-50" onClick={logout}>
+                      로그아웃
+                    </Button>
+                  ) : (
+                    <Button className="rounded-2xl h-12 text-sm font-bold bg-slate-900" onClick={() => { setIsMobileMenuOpen(false); router.push("/login"); }}>
+                      로그인
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 pb-2 text-center">
+                <p className="text-[10px] text-slate-400">© 2024 세특연구소</p>
+              </div>
             </div>
           </div>
         </div>
