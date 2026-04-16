@@ -259,8 +259,6 @@ export function Header() {
             </button>
           </div>
         </div>
-          </div>
-        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
