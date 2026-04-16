@@ -121,7 +121,7 @@ export function Header() {
           <span className="font-bold text-xl text-slate-900 tracking-tight">세특연구소</span>
         </Link>
  
-        {/* PC: Left-aligned links */}
+        {/* PC: Main Navigation (Left-aligned next to logo) */}
         <nav className="hidden md:flex items-center space-x-8 ml-10">
           {navLinks.map((link) => (
             <Link
@@ -134,22 +134,22 @@ export function Header() {
           ))}
         </nav>
  
-        {/* Spacer to push remaining items to the right */}
-        <div className="flex-grow md:flex-none" />
+        {/* Spacer: Grows on desktop to push user actions to the right */}
+        <div className="flex-grow" />
  
-        {/* Actions Container */}
+        {/* Actions Container (Right-aligned) */}
         <div className="flex items-center space-x-2 md:space-x-8">
-          {/* PC: My Reports Link */}
-          {me && (
-            <Link
-              href="/my-reports"
-              className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
-            >
-              기록 페이지
-            </Link>
-          )}
-
           <div className="flex items-center space-x-2">
+            {/* PC: My Reports Link (Only on Desktop) */}
+            {me && (
+              <Link
+                href="/my-reports"
+                className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-4`}
+              >
+                기록 페이지
+              </Link>
+            )}
+
             {me ? (
               <div className="relative" ref={menuRef}>
                 <Button
