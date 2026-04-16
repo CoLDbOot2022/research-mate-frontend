@@ -264,9 +264,6 @@ export function Header() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      </div>
-
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-white md:hidden animate-in fade-in duration-200 overflow-y-auto">
           <div className="flex flex-col pt-24 px-6 pb-12">
