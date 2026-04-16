@@ -108,7 +108,6 @@ export function Header() {
     { href: "/about", label: "Our Vision" },
     { href: "/mentors", label: "Mentors" },
     { href: "/guide", label: "이용 가이드" },
-    { href: "/subject", label: "주제 추천" },
   ];
 
   return (
@@ -140,7 +139,14 @@ export function Header() {
         {/* Actions Container (Right-aligned) */}
         <div className="flex items-center space-x-2 md:space-x-8">
           <div className="flex items-center space-x-2">
-            {/* PC: My Reports Link (Only on Desktop) */}
+            {/* PC: Action Links (Only on Desktop) */}
+            <Link
+              href="/subject"
+              className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-6`}
+            >
+              주제 추천
+            </Link>
+
             {me && (
               <Link
                 href="/my-reports"
