@@ -107,7 +107,7 @@ export function Header() {
   const navLinks = [
     { href: "/about", label: "Our Vision" },
     { href: "/mentors", label: "Mentors" },
-    { href: "/guide", label: "이용 가이드" },
+    { href: "/guide", label: "이용 가이드 및 가격 안내" },
   ];
 
   return (
@@ -144,7 +144,7 @@ export function Header() {
               href="/subject"
               className={`text-sm font-semibold transition-all hover:text-blue-600 relative group ${pathname === "/subject" ? "text-blue-600" : "text-slate-600"}`}
             >
-              주제 추천
+              주제 추천받기
               <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full ${pathname === "/subject" ? "w-full" : ""}`} />
             </Link>
 
