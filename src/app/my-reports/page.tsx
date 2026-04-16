@@ -117,14 +117,17 @@ export default function MyReportsPage() {
               <Card
                 key={r.report_id}
                 className={`rounded-2xl border-slate-200/70 shadow-sm transition-all ${
-                  r.is_expired ? "opacity-60 cursor-not-allowed bg-slate-50" : "cursor-pointer hover:shadow-md bg-white"
+                  r.is_expired || (r.status === "generating" && !r.topic_id) 
+                    ? "opacity-60 cursor-not-allowed bg-slate-50" 
+                    : "cursor-pointer hover:shadow-md bg-white"
                 }`}
                 onClick={() => {
                   if (r.is_expired) return;
-                  // If topic_id is missing, it is still in the topic selection/generation phase.
-                  const isTopicPhase = !r.topic_id || r.status === "topic_generated";
                   
-                  if (isTopicPhase) {
+                  // Disable interaction if still in topic generation phase
+                  if (r.status === "generating" && !r.topic_id) return;
+
+                  if (r.status === "topic_generated") {
                     router.push(`/topic-confirm?report_id=${r.report_id}&report_type=${r.report_type || "general"}&mode=existing`);
                   } else {
                     router.push(`/report/${r.report_id}`);
