@@ -140,19 +140,17 @@ export function Header() {
             <div className="hidden md:flex items-center space-x-8">
               <Link
                 href="/subject"
-                className={`text-sm font-semibold transition-all hover:text-blue-600 relative group ${pathname === "/subject" ? "text-blue-600" : "text-slate-600"}`}
+                className={`text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
               >
                 주제 추천받기
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full ${pathname === "/subject" ? "w-full" : ""}`} />
               </Link>
 
               {me && (
                 <Link
                   href="/my-reports"
-                  className={`text-sm font-semibold transition-all hover:text-blue-600 relative group ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600"}`}
+                  className={`text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
                 >
                   기록 페이지
-                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full ${pathname === "/my-reports" ? "w-full" : ""}`} />
                 </Link>
               )}
             </div>
