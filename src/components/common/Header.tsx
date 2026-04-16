@@ -137,25 +137,12 @@ export function Header() {
         <div className="flex-grow" />
  
         {/* Actions Container (Right-aligned) */}
-        <div className="flex items-center space-x-2 md:space-x-8 flex-nowrap shrink-0">
-          {/* Mobile Menu Button - Moved to the front for better visibility */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="flex md:hidden p-2 text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-all active:scale-95 relative z-50 items-center justify-center border border-slate-200 bg-white shadow-sm shrink-0"
-            aria-label="메뉴 열기"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-5 h-5 text-slate-900" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
-
-          <div className="flex items-center space-x-1 md:space-x-3">
-            {/* PC: My Reports & Subject Links */}
+        <div className="flex items-center space-x-3 md:space-x-8 flex-nowrap shrink-0">
+          {/* PC & Mobile: Service Action Links */}
+          <div className="hidden md:flex items-center space-x-6">
             <Link
               href="/subject"
-              className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-3`}
+              className={`text-sm font-semibold transition-colors ${pathname === "/subject" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
             >
               주제 추천
             </Link>
@@ -163,12 +150,14 @@ export function Header() {
             {me && (
               <Link
                 href="/my-reports"
-                className={`hidden md:inline-block text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"} mr-2`}
+                className={`text-sm font-semibold transition-colors ${pathname === "/my-reports" ? "text-blue-600" : "text-slate-600 hover:text-blue-600"}`}
               >
                 기록 페이지
               </Link>
             )}
+          </div>
 
+          <div className="flex items-center space-x-2 md:space-x-4">
             {me ? (
               <div className="relative" ref={menuRef}>
                 <Button
@@ -257,8 +246,24 @@ export function Header() {
                 <Button size="sm" className="h-8 text-[11px] md:text-sm bg-blue-600 hover:bg-blue-700 font-bold px-2.5 rounded-full shadow-sm" onClick={() => router.push("/register")}>회원가입</Button>
               </div>
             )}
+
+            {/* Mobile Menu Button - Kept flexible and visible */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex md:hidden p-2 text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-all active:scale-95 relative z-50 items-center justify-center border border-slate-200 bg-white shadow-sm shrink-0"
+              aria-label="메뉴 열기"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-slate-900" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
       </div>
 
       {/* Mobile Menu Overlay */}
