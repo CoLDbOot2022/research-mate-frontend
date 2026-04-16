@@ -110,6 +110,7 @@ export function Header() {
     { href: "/guide", label: "이용 가이드 및 가격 안내" },
   ];
 
+  return (
     <>
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100 no-print">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
