@@ -169,7 +169,14 @@ export default function SubjectPage() {
         <form onSubmit={onSubmit} className="space-y-6">
           <Card className="rounded-3xl border-slate-200/70 shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl"><BookOpenText className="w-5 h-5" /> 교과서 단원 선택</CardTitle>
+              <CardTitle className="flex items-center justify-between text-xl">
+                <div className="flex items-center gap-2">
+                  <BookOpenText className="w-5 h-5" /> 교과서 단원 선택
+                </div>
+                <div className="hidden md:block text-[11px] font-medium text-slate-400">
+                  2022 개정 국가교육과정 표준 준수
+                </div>
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-3 space-y-2">
@@ -190,6 +197,12 @@ export default function SubjectPage() {
                     </Button>
                   ))}
                 </div>
+              </div>
+
+              <div className="md:col-span-3 mb-1">
+                <p className="text-[10px] text-slate-400 font-medium">
+                  * 선택하신 단원은 공식 성취기준과 1:1로 매핑되어 리포트가 생성됩니다.
+                </p>
               </div>
 
               <div className="space-y-2">

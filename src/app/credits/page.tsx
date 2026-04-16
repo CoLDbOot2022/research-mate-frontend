@@ -208,6 +208,7 @@ export default function CreditsPage() {
           </div>
         </div>
 
+
         <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-8 px-8 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:px-10">
             <div className="space-y-4">

@@ -15,6 +15,7 @@ import { ReportPreviewDemo } from '@/components/landing/ReportPreviewDemo';
 import { ComparisonSection } from '@/components/landing/ComparisonSection';
 import { ProblemSection } from '@/components/landing/ProblemSection';
 import { DualAISection } from '@/components/landing/DualAISection';
+import { AcademicAuthoritySection } from '@/components/landing/AcademicAuthoritySection';
 import { track } from '@/lib/analytics';
 
 export default function LandingPage() {
@@ -116,6 +117,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Academic Authority Section */}
+      <AcademicAuthoritySection />
 
       {/* Dual AI Collaboration Section */}
       <DualAISection />

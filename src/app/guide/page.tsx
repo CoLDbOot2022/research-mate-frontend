@@ -8,7 +8,10 @@ import {
   SearchCheck, 
   FileDown, 
   ArrowRight,
-  ChevronLeft
+  ChevronLeft,
+  BookOpen,
+  ShieldCheck,
+  Database
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -133,6 +136,10 @@ export default function GuidePage() {
                     </div>
                   ))}
                 </div>
+                {/* Trust Nudge */}
+                <div className="mt-auto pt-8 border-t border-slate-100 italic text-[11px] text-slate-400 font-medium">
+                  * 본 서비스는 2022 개정 교육과정 및 대학 입시 평가 표준을 준수합니다.
+                </div>
               </div>
             </div>
 
@@ -172,7 +179,43 @@ export default function GuidePage() {
                     </div>
                   ))}
                 </div>
+                {/* Trust Nudge */}
+                <div className="mt-auto pt-8 border-t border-indigo-50 italic text-[11px] text-indigo-400 font-medium">
+                  * 국가 성취기준 기반의 정밀주제 추천 및 리포트가 보장됩니다.
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="border-t border-slate-100 w-full" />
+
+        {/* Methodology Section - LIGHT & COMPACT */}
+        <section className="py-8 px-6 bg-blue-50/50 rounded-3xl border border-blue-100">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            <div className="shrink-0 text-center md:text-left">
+              <span className="text-blue-600 font-black tracking-widest text-[10px] uppercase block mb-1">Methodology</span>
+              <h2 className="text-xl font-black text-slate-900 leading-tight">
+                신뢰할 수 있는<br />학술적 기반
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-1">
+              {[
+                { title: "2022 개정 교육과정", desc: "공식 성취기준 100% 매핑", icon: <BookOpen className="w-4 h-4" /> },
+                { title: "입사관 평가 평가 로직", desc: "대학 선호 서술 구조 반영", icon: <ShieldCheck className="w-4 h-4" /> },
+                { title: "최신 학술 RAG 시스템", desc: "증거 중심의 심화 탐구", icon: <Database className="w-4 h-4" /> }
+              ].map((pill, i) => (
+                <div key={i} className="flex gap-3 items-start">
+                  <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 text-blue-600">
+                    {pill.icon}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-bold text-slate-800">{pill.title}</p>
+                    <p className="text-[11px] text-slate-500 font-medium leading-tight">{pill.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>

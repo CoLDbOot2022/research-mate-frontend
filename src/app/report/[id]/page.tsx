@@ -390,20 +390,20 @@ export default function ReportDetailPage() {
             subtitle={report?.status === "generating" ? "AI 보조 연구원이 교과서 기반 보고서를 작성하고 있습니다." : "최종 결과물을 정리하고 있습니다."}
             progress={displayProgressMeta?.progress ?? 0}
             writerTitle="Writer AI"
-            writerSubtitle="교과서 문맥 수집 및 보고서 전문 작성"
+            writerSubtitle="2022 교육부 국가 성취기준 기반 정밀 설계"
             writerCurrentPhase={displayProgressMeta?.phase || "retrieve"}
             writerRealTimeMessage={displayProgressMeta?.message || ""}
             writerPhases={[
-              { label: "retrieve & plan", description: "교과서에서 RAG 컨텍스트를 추출하고 분석 계획을 수집합니다.", threshold: 48 },
-              { label: "generate", description: "교과서 내용과 탐구 계획을 밀접하게 반영하여 초안을 작성합니다.", threshold: 74 },
-              { label: "rewrite", description: "AI 점검 결과에 따른 피드백을 적용해 보강 및 재작성합니다.", threshold: 94 },
-              { label: "finalize", description: "최종 문서 형식을 맞추고 참고문헌을 정리합니다.", threshold: 100 },
+              { label: "retrieve & plan", description: "교과서에서 공식 성취기준 컨텍스트를 추출하고 탐구 계획을 수집합니다.", threshold: 48 },
+              { label: "generate", description: "성취기준과 탐구 계획을 밀접하게 반영하여 학술적 초안을 작성합니다.", threshold: 74 },
+              { label: "rewrite", description: "입사관 로직 판정에 따른 피드백을 적용해 보강 및 재작성합니다.", threshold: 94 },
+              { label: "finalize", description: "최종 문서 형식을 맞추고 대학 선호 키워드를 최적화합니다.", threshold: 100 },
             ]}
-            reviewerTitle="Reviewer AI"
-            reviewerSubtitle="8가지 루브릭 기반 품질 실시간 평가"
+            reviewerTitle="Admissions AI"
+            reviewerSubtitle="주요 대학 입학사정관 평가 지표 기반 품질 검증"
             reviewerCurrentPhase={displayProgressMeta?.phase || "retrieve"}
             reviewerPhases={[
-              { label: "critique", description: "엄격한 루브릭을 기준으로 작성된 보고서의 품질을 채점하고 피드백을 생성합니다.", threshold: 86 },
+              { label: "critique", description: "종합전형 평가 요소를 기준으로 작성된 보고서의 학업 역량을 실시간 채점합니다.", threshold: 86 },
             ]}
           />
         </div>
