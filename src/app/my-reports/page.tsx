@@ -22,6 +22,7 @@ type ReportItem = {
   phase?: string;
   status_message?: string;
   is_expired?: boolean;
+  topic_id?: string | null;
 };
 
 export default function MyReportsPage() {
