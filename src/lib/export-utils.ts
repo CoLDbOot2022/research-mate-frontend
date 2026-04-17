@@ -1,14 +1,20 @@
+import katex from 'katex';
+
 /**
  * Utility to export HTML content to a Microsoft Word (.doc) file
- * using a standardized HTML-to-Word XML wrapper.
+ * using a standardized HTML-to-Word XML wrapper with MathML support.
  */
 export function exportToWord(html: string, filename: string = "report.doc") {
   if (typeof window === "undefined") return;
 
-  // Word-compatible XML/HTML headers
+  // 1. Preprocess HTML to convert LaTeX/Math nodes to MathML for Word
+  const processedHtml = preprocessMathForWord(html);
+
+  // 2. Word-compatible XML/HTML headers with MathML namespace
   const header = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' 
           xmlns:w='urn:schemas-microsoft-com:office:word' 
+          xmlns:m='http://schemas.openxmlformats.org/officeDocument/2006/math'
           xmlns='http://www.w3.org/TR/REC-html40'>
     <head>
       <meta charset='utf-8'>
@@ -29,6 +35,8 @@ export function exportToWord(html: string, filename: string = "report.doc") {
         th { background-color: #f3f4f6; font-weight: bold; }
         hr { border: none; border-top: 1px solid #000000; margin: 24pt 0; }
         .metadata { color: #000000; font-size: 10pt; margin-bottom: 6pt; }
+        /* Word sometimes needs help with MathML display */
+        m|math { display: inline-block; }
       </style>
     </head>
     <body>
@@ -37,9 +45,10 @@ export function exportToWord(html: string, filename: string = "report.doc") {
   const footer = "</body></html>";
   
   // Combine all parts
-  const source = header + html + footer;
+  const source = header + processedHtml + footer;
   
   // Create a Blob from the combined source string
+  // Use UTF-8 with BOM (\ufeff) to help Word detect encoding correctly
   const blob = new Blob(['\ufeff', source], {
     type: 'application/msword'
   });
@@ -56,4 +65,40 @@ export function exportToWord(html: string, filename: string = "report.doc") {
   // Cleanup
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Finds all mathematical notations in the HTML (like Tiptap MathNodes)
+ * and replaces them with pure MathML that MS Word can understand.
+ */
+function preprocessMathForWord(html: string): string {
+  if (typeof document === 'undefined') return html;
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  
+  // Find all tiptap-math nodes or spans with data-tex
+  const mathNodes = doc.querySelectorAll('.tiptap-math, span[data-tex], div.math-display, span.math-inline');
+  
+  mathNodes.forEach((node) => {
+    const tex = node.getAttribute('data-tex') || node.textContent || '';
+    const isDisplay = node.classList.contains('math-display') || node.getAttribute('data-display') === 'true';
+    
+    try {
+      // Generate only MathML output
+      const mathml = katex.renderToString(tex, {
+        output: 'mathml',
+        displayMode: isDisplay,
+        throwOnError: false
+      });
+      
+      // Replace the entire node with the MathML string
+      const wrapper = doc.createElement('span');
+      wrapper.innerHTML = mathml;
+      node.parentNode?.replaceChild(wrapper, node);
+    } catch (err) {
+      console.error('Failed to convert math for Word:', err);
+    }
+  });
+
+  return doc.body.innerHTML;
 }
