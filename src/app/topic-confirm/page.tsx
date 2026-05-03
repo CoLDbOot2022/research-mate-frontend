@@ -36,6 +36,7 @@ function TopicConfirmContent() {
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [loading, setLoading] = useState(true);
+  const [completing, setCompleting] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -108,20 +109,28 @@ function TopicConfirmContent() {
             tags: selected.tags,
           });
         }
+        // Fill progress bar to 100% before transitioning
+        setCompleting(true);
+        setTimeout(() => setLoading(false), 800);
+        return; // skip finally's setLoading call
       }
     } catch (e: any) {
       console.error(e);
       setTopic(null);
+      setLoading(false); // always stop loading on error
       const msg = typeof e === 'string' ? e : (e.message || "주제 추천 정보를 불러오는데 실패했습니다.");
       alert(msg);
     } finally {
-      // Only stop loading if we actually have a topic or it's not generating anymore.
-      // But for 'new' mode, the recommend API is synchronous (it waits for AI).
-      // For 'existing' mode, we only stop if status != generating.
+      // 'existing' mode polling: stop loading only when done generating
       const mode = searchParams.get("mode");
-      if (mode !== "existing" || (reportState?.status && reportState.status !== "generating")) {
-         setLoading(false);
+      if (mode === "existing") {
+        if (reportState?.status && reportState.status !== "generating") {
+          setLoading(false);
+        }
+        // else: still polling, don't stop
       }
+      // new mode success: handled by setTimeout + return above
+      // new mode error: handled by catch above
     }
   }, [getRequestBody, searchParams, reportState?.status]);
 
@@ -169,8 +178,8 @@ function TopicConfirmContent() {
 
     // AI Generation UI
     const meta = reportState?.content?.__meta || {};
-    const progress = meta.progress ?? (100 * (1 - Math.pow(0.1, elapsedMs / 10000)));
-    const currentPhase = meta.phase === "analyzing" ? "입력 분석" : (meta.phase === "topic_searching" ? "주제 탐색" : "최종 선택");
+    const progress = completing ? 100 : (meta.progress ?? (100 * (1 - Math.pow(0.1, elapsedMs / 10000))));
+    const currentPhase = completing ? "최종 선택" : (meta.phase === "analyzing" ? "입력 분석" : (meta.phase === "topic_searching" ? "주제 탐색" : "최종 선택"));
     const statusMsg = meta.message || `${currentPhase}: ${searchParams.get("subject") || "입력하신"} 리포트 주제를 생성하고 있습니다...`;
 
     return (
