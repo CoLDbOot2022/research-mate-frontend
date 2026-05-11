@@ -156,4 +156,9 @@ export const track = {
   adminReviewCompleted: (props: { report_id: string }) => {
     t("Admin Review Completed", props);
   },
+
+  // ── User Identification ──────────────────────────────────────────────────
+  identify: (userId: string | null) => {
+    amplitude.setUserId(userId ?? undefined);
+  },
 };

@@ -19,6 +19,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { clearAccessToken, getAccessToken } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -54,15 +55,20 @@ export function Header() {
         if (!res.ok) throw new Error("unauthorized");
         const data = (await res.json()) as MeResponse;
         setMe(data);
+        if (data.email) {
+          track.identify(data.email);
+        }
       } catch {
         clearAccessToken();
         setMe(null);
+        track.identify(null);
       }
     };
 
     load().catch(() => {
       clearAccessToken();
       setMe(null);
+      track.identify(null);
     });
   }, [pathname]);
 
@@ -97,6 +103,7 @@ export function Header() {
   const logout = () => {
     clearAccessToken();
     setMe(null);
+    track.identify(null);
     setIsMenuOpen(false);
     setIsMobileMenuOpen(false);
     router.push("/");
